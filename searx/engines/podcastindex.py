@@ -14,11 +14,11 @@ about = {
 }
 categories = []
 
-base_url = "https://podcastindex.org"
+base_url = "https://chatvid.ai"
 
 
 def request(query, params):
-    params['url'] = f"{base_url}/api/search/byterm?q={quote_plus(query)}"
+    params['url'] = f"{base_url}/api/search/podcast?q={quote_plus(query)}"
     return params
 
 
