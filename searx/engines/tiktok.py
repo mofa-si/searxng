@@ -51,13 +51,21 @@ def response(resp):
         if _item.get("type") == 1:
             item = _item.get("item", {})
             iframe_url = f"https://www.tiktok.com/embed/v2/{item.get('id', '')}"
+            author = item.get("author", {})
+            video = item.get("video", {})
+
+            # https://www.tiktok.com/@evil0ctal/video/7156033831819037994
+            video_url = f"https://www.tiktok.com/@{author.get('uniqueId', '')}/video/{item.get('id', '')}"
+
             results.append({
                 "title": item.get("desc", ""),
-                "url": item.get("video", {}).get("playAddr", ""),
+                "url": video_url,
+                # "url": video.get("playAddr", ""),
+                # "url": video.get("downloadAddr", ""),
                 "content": item.get("desc", ""),
-                "author": item.get("author", {}).get("nickname", ""),
+                "author": author.get("nickname", ""),
                 "publishedDate": datetime.utcfromtimestamp(item.get("createTime")),
-                "thumbnail": item.get("video", {}).get("cover", ""),
+                "thumbnail": video.get("cover", ""),
                 "iframe_src": iframe_url,
                 "template": "videos.html",
             })
