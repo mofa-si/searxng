@@ -25,6 +25,7 @@ def request(query, params):
 def response(resp):
     results = []
 
+    print(resp)
     json = resp.json()
 
     for result in json['feeds']:
