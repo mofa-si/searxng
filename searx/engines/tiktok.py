@@ -46,19 +46,20 @@ def response(resp):
 
     results = []
     for _item in search_res.get("data", []):
-        item = _item.get("item", {})
-        print('_item', _item, item)
-        iframe_url = f"https://www.tiktok.com/embed/v2/{item.get('id', '')}"
-        results.append({
-            "title": item.get("desc", ""),
-            "url": item.get("video", {}).get("playAddr", ""),
-            "content": item.get("desc", ""),
-            "author": item.get("author", {}).get("nickname", ""),
-            "publishedDate": datetime.utcfromtimestamp(item.get("createTime")).strftime('%Y-%m-%d'),
-            "thumbnail": item.get("video", {}).get("cover", ""),
-            "iframe_src": iframe_url,
-            "template": "videos.html",
-        })
-    return results
+        print('_item', _item)
 
+        if _item.get("type") == 1:
+            item = _item.get("item", {})
+            iframe_url = f"https://www.tiktok.com/embed/v2/{item.get('id', '')}"
+            results.append({
+                "title": item.get("desc", ""),
+                "url": item.get("video", {}).get("playAddr", ""),
+                "content": item.get("desc", ""),
+                "author": item.get("author", {}).get("nickname", ""),
+                "publishedDate": datetime.utcfromtimestamp(item.get("createTime")).strftime('%Y-%m-%d'),
+                "thumbnail": item.get("video", {}).get("cover", ""),
+                "iframe_src": iframe_url,
+                "template": "videos.html",
+            })
+    return results
 
