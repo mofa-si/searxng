@@ -393,6 +393,11 @@ engines:
     shortcut: bil
     disabled: true
 
+  - name: tiktok
+    engine: tiktok
+    shortcut: tik
+    disabled: true
+
   - name: bing
     engine: bing
     shortcut: bi
