@@ -56,7 +56,7 @@ def response(resp):
                 "url": item.get("video", {}).get("playAddr", ""),
                 "content": item.get("desc", ""),
                 "author": item.get("author", {}).get("nickname", ""),
-                "publishedDate": datetime.utcfromtimestamp(item.get("createTime")).strftime('%Y-%m-%d'),
+                "publishedDate": datetime.utcfromtimestamp(item.get("createTime")),
                 "thumbnail": item.get("video", {}).get("cover", ""),
                 "iframe_src": iframe_url,
                 "template": "videos.html",
