@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import datetime
 from urllib.parse import urlencode
@@ -44,7 +45,19 @@ def request(keyword, params):
 
 def response(resp):
     print('tiktok resp', resp)
-    search_res = resp.json()
+
+    # Check if the response content is empty
+    if not resp.content:
+        print('Empty response content')
+        return []
+
+    try:
+        search_res = resp.json()
+    except json.JSONDecodeError as e:
+        print(f'Error decoding JSON: {e}')
+        print('Response content:', resp.text)  # Print the raw response content
+        return []
+
     print('tiktok search_res', search_res)
 
     results = []
@@ -73,4 +86,3 @@ def response(resp):
                 "template": "videos.html",
             })
     return results
-
