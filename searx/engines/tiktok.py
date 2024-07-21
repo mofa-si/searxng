@@ -43,8 +43,9 @@ def request(keyword, params):
 
 
 def response(resp):
+    print('tiktok resp', resp)
     search_res = resp.json()
-    print(search_res)
+    print('tiktok search_res', search_res)
 
     results = []
     for _item in search_res.get("data", []):
