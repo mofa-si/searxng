@@ -21,8 +21,10 @@ categories = ["videos"]
 base_url = "https://www.tiktok.com/api/search/general/full/"
 
 # Example cookie to mimic the JavaScript logic
+ttwid = os.getenv('TikTok_TTWID_TOKEN')
+print('tiktok ttwid', ttwid)
 cookie = {
-    "ttwid": os.getenv('TikTok_TTWID_TOKEN'),
+    "ttwid": ttwid,
 }
 
 
