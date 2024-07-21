@@ -45,6 +45,7 @@ def request(keyword, params):
 
 def response(resp):
     print('tiktok resp', resp)
+    print('Response content:', resp.text)  # Print the raw response content
 
     # Check if the response content is empty
     if not resp.content:
