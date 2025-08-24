@@ -5,14 +5,24 @@
    https://de1.api.radio-browser.info/#Advanced_station_search
 
 """
+from __future__ import annotations
 
+import typing
+import random
+import socket
 from urllib.parse import urlencode
 import babel
 from flask_babel import gettext
 
 from searx.network import get
+from searx.enginelib import EngineCache
 from searx.enginelib.traits import EngineTraits
 from searx.locales import language_tag
+
+if typing.TYPE_CHECKING:
+    import logging
+
+    logger = logging.getLogger()
 
 traits: EngineTraits
 
@@ -27,7 +37,6 @@ about = {
 paging = True
 categories = ['music', 'radio']
 
-base_url = "https://de1.api.radio-browser.info"  # see https://api.radio-browser.info/ for all nodes
 number_of_results = 10
 
 station_filters = []  # ['countrycode', 'language']
@@ -51,8 +60,48 @@ none filters are applied. Valid filters are:
 
 """
 
+CACHE: EngineCache
+"""Persistent (SQLite) key/value cache that deletes its values after ``expire``
+seconds."""
+
+
+def init(_):
+    global CACHE  # pylint: disable=global-statement
+    CACHE = EngineCache("radio_browser")
+    server_list()
+
+
+def server_list() -> list[str]:
+
+    servers = CACHE.get("servers", [])
+    if servers:
+        return servers
+
+    # hint: can take up to 40sec!
+    ips = socket.getaddrinfo("all.api.radio-browser.info", 80, 0, 0, socket.IPPROTO_TCP)
+    for ip_tuple in ips:
+        _ip: str = ip_tuple[4][0]  # type: ignore
+        url = socket.gethostbyaddr(_ip)[0]
+        srv = "https://" + url
+        if srv not in servers:
+            servers.append(srv)
+
+    # update server list once in 24h
+    CACHE.set(key="servers", value=servers, expire=60 * 60 * 24)
+
+    return servers
+
 
 def request(query, params):
+
+    servers = server_list()
+    if not servers:
+        logger.error("Fetched server list is empty!")
+        params["url"] = None
+        return
+
+    server = random.choice(servers)
+
     args = {
         'name': query,
         'order': 'votes',
@@ -73,8 +122,7 @@ def request(query, params):
             if countrycode in traits.custom['countrycodes']:  # type: ignore
                 args['countrycode'] = countrycode
 
-    params['url'] = f"{base_url}/json/stations/search?{urlencode(args)}"
-    return params
+    params['url'] = f"{server}/json/stations/search?{urlencode(args)}"
 
 
 def response(resp):
@@ -114,7 +162,7 @@ def response(resp):
             {
                 'url': url,
                 'title': result['name'],
-                'img_src': result.get('favicon', '').replace("http://", "https://"),
+                'thumbnail': result.get('favicon', '').replace("http://", "https://"),
                 'content': ' | '.join(content),
                 'metadata': ' | '.join(metadata),
                 'iframe_src': result['url_resolved'].replace("http://", "https://"),
@@ -135,12 +183,14 @@ def fetch_traits(engine_traits: EngineTraits):
     """
     # pylint: disable=import-outside-toplevel
 
+    init(None)
     from babel.core import get_global
 
     babel_reg_list = get_global("territory_languages").keys()
 
-    language_list = get(f'{base_url}/json/languages').json()  # type: ignore
-    country_list = get(f'{base_url}/json/countries').json()  # type: ignore
+    server = server_list()[0]
+    language_list = get(f'{server}/json/languages').json()  # type: ignore
+    country_list = get(f'{server}/json/countries').json()  # type: ignore
 
     for lang in language_list:
 
@@ -165,10 +215,12 @@ def fetch_traits(engine_traits: EngineTraits):
 
     countrycodes = set()
     for region in country_list:
-        if region['iso_3166_1'] not in babel_reg_list:
+        # country_list contains duplicates that differ only in upper/lower case
+        _reg = region['iso_3166_1'].upper()
+        if _reg not in babel_reg_list:
             print(f"ERROR: region tag {region['iso_3166_1']} is unknown by babel")
             continue
-        countrycodes.add(region['iso_3166_1'])
+        countrycodes.add(_reg)
 
     countrycodes = list(countrycodes)
     countrycodes.sort()

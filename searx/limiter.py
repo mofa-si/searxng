@@ -17,7 +17,7 @@ from the :ref:`botdetection`:
   the time.
 
 - Detection & dynamically :ref:`botdetection rate limit` of bots based on the
-  behavior of the requests.  For dynamically changeable IP lists a Redis
+  behavior of the requests.  For dynamically changeable IP lists a Valkey
   database is needed.
 
 The prerequisite for IP based methods is the correct determination of the IP of
@@ -50,13 +50,13 @@ To enable the limiter activate:
      ...
      limiter: true  # rate limit the number of request on the instance, block some bots
 
-and set the redis-url connection. Check the value, it depends on your redis DB
-(see :ref:`settings redis`), by example:
+and set the valkey-url connection. Check the value, it depends on your valkey DB
+(see :ref:`settings valkey`), by example:
 
 .. code:: yaml
 
-   redis:
-     url: unix:///usr/local/searxng-redis/run/redis.sock?db=0
+   valkey:
+     url: valkey://localhost:6379/0
 
 
 Configure Limiter
@@ -93,28 +93,30 @@ Implementation
 """
 
 from __future__ import annotations
+from ipaddress import ip_address
 import sys
 
 from pathlib import Path
-from ipaddress import ip_address
 import flask
 import werkzeug
 
+import searx.compat
 from searx import (
     logger,
-    redisdb,
+    valkeydb,
 )
 from searx import botdetection
+from searx.extended_types import SXNG_Request, sxng_request
 from searx.botdetection import (
     config,
     http_accept,
     http_accept_encoding,
     http_accept_language,
     http_user_agent,
+    http_sec_fetch,
     ip_limit,
     ip_lists,
     get_network,
-    get_real_ip,
     dump_request,
 )
 
@@ -122,32 +124,32 @@ from searx.botdetection import (
 # coherency, the logger is "limiter"
 logger = logger.getChild('limiter')
 
-CFG: config.Config = None  # type: ignore
+CFG: config.Config | None = None  # type: ignore
 _INSTALLED = False
 
 LIMITER_CFG_SCHEMA = Path(__file__).parent / "limiter.toml"
 """Base configuration (schema) of the botdetection."""
 
-LIMITER_CFG = Path('/etc/searxng/limiter.toml')
-"""Local Limiter configuration."""
-
-CFG_DEPRECATED = {
-    # "dummy.old.foo": "config 'dummy.old.foo' exists only for tests.  Don't use it in your real project config."
-}
-
 
 def get_cfg() -> config.Config:
+    """Returns SearXNG's global limiter configuration."""
     global CFG  # pylint: disable=global-statement
+
     if CFG is None:
-        CFG = config.Config.from_toml(LIMITER_CFG_SCHEMA, LIMITER_CFG, CFG_DEPRECATED)
+        from . import settings_loader  # pylint: disable=import-outside-toplevel
+
+        cfg_file = (settings_loader.get_user_cfg_folder() or Path("/etc/searxng")) / "limiter.toml"
+        CFG = config.Config.from_toml(LIMITER_CFG_SCHEMA, cfg_file, searx.compat.LIMITER_CFG_DEPRECATED)
+        searx.compat.limiter_fix_cfg(CFG, cfg_file)
+
     return CFG
 
 
-def filter_request(request: flask.Request) -> werkzeug.Response | None:
+def filter_request(request: SXNG_Request) -> werkzeug.Response | None:
     # pylint: disable=too-many-return-statements
 
     cfg = get_cfg()
-    real_ip = ip_address(get_real_ip(request))
+    real_ip = ip_address(request.remote_addr)
     network = get_network(real_ip, cfg)
 
     if request.path == '/healthz':
@@ -177,16 +179,17 @@ def filter_request(request: flask.Request) -> werkzeug.Response | None:
         logger.error("BLOCK %s: matched BLOCKLIST - %s", network.compressed, msg)
         return flask.make_response(('IP is on BLOCKLIST - %s' % msg, 429))
 
-    # methods applied on /
+    # methods applied on all requests
 
     for func in [
         http_user_agent,
     ]:
         val = func.filter_request(network, request, cfg)
         if val is not None:
+            logger.debug(f"NOT OK ({func.__name__}): {network}: %s", dump_request(sxng_request))
             return val
 
-    # methods applied on /search
+    # methods applied on /search requests
 
     if request.path == '/search':
 
@@ -195,22 +198,25 @@ def filter_request(request: flask.Request) -> werkzeug.Response | None:
             http_accept_encoding,
             http_accept_language,
             http_user_agent,
+            http_sec_fetch,
             ip_limit,
         ]:
             val = func.filter_request(network, request, cfg)
             if val is not None:
+                logger.debug(f"NOT OK ({func.__name__}): {network}: %s", dump_request(sxng_request))
                 return val
-    logger.debug(f"OK {network}: %s", dump_request(flask.request))
+
+    logger.debug(f"OK {network}: %s", dump_request(sxng_request))
     return None
 
 
 def pre_request():
     """See :py:obj:`flask.Flask.before_request`"""
-    return filter_request(flask.request)
+    return filter_request(sxng_request)
 
 
 def is_installed():
-    """Returns ``True`` if limiter is active and a redis DB is available."""
+    """Returns ``True`` if limiter is active and a valkey DB is available."""
     return _INSTALLED
 
 
@@ -222,15 +228,15 @@ def initialize(app: flask.Flask, settings):
     # (e.g. the self_info plugin uses the botdetection to get client IP)
 
     cfg = get_cfg()
-    redis_client = redisdb.client()
-    botdetection.init(cfg, redis_client)
+    valkey_client = valkeydb.client()
+    botdetection.init(cfg, valkey_client)
 
     if not (settings['server']['limiter'] or settings['server']['public_instance']):
         return
 
-    if not redis_client:
+    if not valkey_client:
         logger.error(
-            "The limiter requires Redis, please consult the documentation: "
+            "The limiter requires Valkey, please consult the documentation: "
             "https://docs.searxng.org/admin/searx.limiter.html"
         )
         if settings['server']['public_instance']:

@@ -15,7 +15,7 @@ from babel.dates import format_datetime, format_date, format_time, get_datetime_
 
 from searx.data import WIKIDATA_UNITS
 from searx.network import post, get
-from searx.utils import searx_useragent, get_string_replaces_function
+from searx.utils import searxng_useragent, get_string_replaces_function
 from searx.external_urls import get_external_url, get_earth_coordinates_url, area_to_osm_zoom
 from searx.engines.wikipedia import (
     fetch_wikimedia_traits,
@@ -60,6 +60,9 @@ WIKIDATA_PROPERTIES = {
     'P2002': 'Twitter',
     'P2013': 'Facebook',
     'P2003': 'Instagram',
+    'P4033': 'Mastodon',
+    'P11947': 'Lemmy',
+    'P12622': 'PeerTube',
 }
 
 # SERVICE wikibase:mwapi : https://www.mediawiki.org/wiki/Wikidata_Query_Service/User_Manual/MWAPI
@@ -139,7 +142,7 @@ replace_http_by_https = get_string_replaces_function({'http:': 'https:'})
 
 def get_headers():
     # user agent: https://www.mediawiki.org/wiki/Wikidata_Query_Service/User_Manual#Query_limits
-    return {'Accept': 'application/sparql-results+json', 'User-Agent': searx_useragent()}
+    return {'Accept': 'application/sparql-results+json', 'User-Agent': searxng_useragent()}
 
 
 def get_label_for_entity(entity_id, language):
@@ -155,13 +158,13 @@ def get_label_for_entity(entity_id, language):
     return name
 
 
-def send_wikidata_query(query, method='GET'):
+def send_wikidata_query(query, method='GET', **kwargs):
     if method == 'GET':
         # query will be cached by wikidata
-        http_response = get(SPARQL_ENDPOINT_URL + '?' + urlencode({'query': query}), headers=get_headers())
+        http_response = get(SPARQL_ENDPOINT_URL + '?' + urlencode({'query': query}), headers=get_headers(), **kwargs)
     else:
         # query won't be cached by wikidata
-        http_response = post(SPARQL_ENDPOINT_URL, data={'query': query}, headers=get_headers())
+        http_response = post(SPARQL_ENDPOINT_URL, data={'query': query}, headers=get_headers(), **kwargs)
     if http_response.status_code != 200:
         logger.debug('SPARQL endpoint error %s', http_response.content.decode())
     logger.debug('request time %s', str(http_response.elapsed))
@@ -363,8 +366,8 @@ def get_attributes(language):
     def add_label(name):
         attributes.append(WDLabelAttribute(name))
 
-    def add_url(name, url_id=None, **kwargs):
-        attributes.append(WDURLAttribute(name, url_id, kwargs))
+    def add_url(name, url_id=None, url_path_prefix=None, **kwargs):
+        attributes.append(WDURLAttribute(name, url_id, url_path_prefix, kwargs))
 
     def add_image(name, url_id=None, priority=1):
         attributes.append(WDImageAttribute(name, url_id, priority))
@@ -475,6 +478,11 @@ def get_attributes(language):
     add_url('P2002', url_id='twitter_profile')
     add_url('P2013', url_id='facebook_profile')
     add_url('P2003', url_id='instagram_profile')
+
+    # Fediverse
+    add_url('P4033', url_path_prefix='/@')  # Mastodon user
+    add_url('P11947', url_path_prefix='/c/')  # Lemmy community
+    add_url('P12622', url_path_prefix='/c/')  # PeerTube channel
 
     # Map
     attributes.append(WDGeoAttribute('P625'))
@@ -592,22 +600,50 @@ class WDURLAttribute(WDAttribute):
 
     HTTP_WIKIMEDIA_IMAGE = 'http://commons.wikimedia.org/wiki/Special:FilePath/'
 
-    __slots__ = 'url_id', 'kwargs'
+    __slots__ = 'url_id', 'url_path_prefix', 'kwargs'
 
-    def __init__(self, name, url_id=None, kwargs=None):
+    def __init__(self, name, url_id=None, url_path_prefix=None, kwargs=None):
+        """
+        :param url_id: ID matching one key in ``external_urls.json`` for
+            converting IDs to full URLs.
+
+        :param url_path_prefix: Path prefix if the values are of format
+            ``account@domain``.  If provided, value are rewritten to
+            ``https://<domain><url_path_prefix><account>``.  For example::
+
+              WDURLAttribute('P4033', url_path_prefix='/@')
+
+            Adds Property `P4033 <https://www.wikidata.org/wiki/Property:P4033>`_
+            to the wikidata query.  This field might return for example
+            ``libreoffice@fosstodon.org`` and the URL built from this is then:
+
+            - account: ``libreoffice``
+            - domain: ``fosstodon.org``
+            - result url: https://fosstodon.org/@libreoffice
+        """
+
         super().__init__(name)
         self.url_id = url_id
+        self.url_path_prefix = url_path_prefix
         self.kwargs = kwargs
 
     def get_str(self, result, language):
         value = result.get(self.name + 's')
-        if self.url_id and value is not None and value != '':
-            value = value.split(',')[0]
+        if not value:
+            return None
+
+        value = value.split(',')[0]
+        if self.url_id:
             url_id = self.url_id
             if value.startswith(WDURLAttribute.HTTP_WIKIMEDIA_IMAGE):
                 value = value[len(WDURLAttribute.HTTP_WIKIMEDIA_IMAGE) :]
                 url_id = 'wikimedia_image'
             return get_external_url(url_id, value)
+
+        if self.url_path_prefix:
+            [account, domain] = [x.strip("@ ") for x in value.rsplit('@', 1)]
+            return f"https://{domain}{self.url_path_prefix}{account}"
+
         return value
 
 
@@ -762,7 +798,8 @@ def debug_explain_wikidata_query(query, method='GET'):
 
 def init(engine_settings=None):  # pylint: disable=unused-argument
     # WIKIDATA_PROPERTIES : add unit symbols
-    WIKIDATA_PROPERTIES.update(WIKIDATA_UNITS)
+    for k, v in WIKIDATA_UNITS.items():
+        WIKIDATA_PROPERTIES[k] = v['symbol']
 
     # WIKIDATA_PROPERTIES : add property labels
     wikidata_property_names = []
@@ -771,7 +808,7 @@ def init(engine_settings=None):  # pylint: disable=unused-argument
             if attribute.name not in WIKIDATA_PROPERTIES:
                 wikidata_property_names.append("wd:" + attribute.name)
     query = QUERY_PROPERTY_NAMES.replace('%ATTRIBUTES%', " ".join(wikidata_property_names))
-    jsonresponse = send_wikidata_query(query)
+    jsonresponse = send_wikidata_query(query, timeout=20)
     for result in jsonresponse.get('results', {}).get('bindings', {}):
         name = result['name']['value']
         lang = result['name']['xml:lang']

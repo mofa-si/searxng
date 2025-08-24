@@ -28,16 +28,30 @@ except ImportError:
     # manually to use the engine.
     pass
 
+from searx.result_types import EngineResults
+
 engine_type = 'offline'
+
 host = "127.0.0.1"
+"""Hostname of the DB connector"""
+
 port = "5432"
+"""Port of the DB connector"""
+
 database = ""
+"""Name of the database."""
+
 username = ""
+"""Username for the DB connection."""
+
 password = ""
+"""Password for the DB connection."""
+
 query_str = ""
+"""SQL query that returns the result items."""
+
 limit = 10
 paging = True
-result_template = 'key-value.html'
 _connection = None
 
 
@@ -59,7 +73,7 @@ def init(engine_settings):
     )
 
 
-def search(query, params):
+def search(query, params) -> EngineResults:
     query_params = {'query': query}
     query_to_run = query_str + ' LIMIT {0} OFFSET {1}'.format(limit, (params['pageno'] - 1) * limit)
 
@@ -69,20 +83,16 @@ def search(query, params):
             return _fetch_results(cur)
 
 
-def _fetch_results(cur):
-    results = []
-    titles = []
-
+def _fetch_results(cur) -> EngineResults:
+    res = EngineResults()
     try:
         titles = [column_desc.name for column_desc in cur.description]
-
-        for res in cur:
-            result = dict(zip(titles, map(str, res)))
-            result['template'] = result_template
-            results.append(result)
+        for row in cur:
+            kvmap = dict(zip(titles, map(str, row)))
+            res.add(res.types.KeyValue(kvmap=kvmap))
 
     # no results to fetch
     except psycopg2.ProgrammingError:
         pass
 
-    return results
+    return res

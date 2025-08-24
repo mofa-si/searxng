@@ -12,7 +12,6 @@ Accept_ header ..
    https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept
 
 """
-# pylint: disable=unused-argument
 
 from __future__ import annotations
 from ipaddress import (
@@ -20,8 +19,8 @@ from ipaddress import (
     IPv6Network,
 )
 
-import flask
 import werkzeug
+import flask
 
 from . import config
 from ._helpers import too_many_requests
@@ -30,7 +29,7 @@ from ._helpers import too_many_requests
 def filter_request(
     network: IPv4Network | IPv6Network,
     request: flask.Request,
-    cfg: config.Config,
+    cfg: config.Config,  # pylint: disable=unused-argument
 ) -> werkzeug.Response | None:
 
     if 'text/html' not in request.accept_mimetypes:

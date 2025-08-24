@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Utility functions for the engines
+"""Utility functions for the engines"""
 
-"""
+from __future__ import annotations
+
 import re
 import importlib
 import importlib.util
@@ -14,7 +15,8 @@ from os.path import splitext, join
 from random import choice
 from html.parser import HTMLParser
 from html import escape
-from urllib.parse import urljoin, urlparse
+from urllib.parse import urljoin, urlparse, parse_qs, urlencode
+from datetime import timedelta
 from markdown_it import MarkdownIt
 
 from lxml import html
@@ -41,21 +43,11 @@ _JS_QUOTE_KEYS_RE = re.compile(r'([\{\s,])(\w+)(:)')
 _JS_VOID_RE = re.compile(r'void\s+[0-9]+|void\s*\([0-9]+\)')
 _JS_DECIMAL_RE = re.compile(r":\s*\.")
 
-_STORAGE_UNIT_VALUE: Dict[str, int] = {
-    'TB': 1024 * 1024 * 1024 * 1024,
-    'GB': 1024 * 1024 * 1024,
-    'MB': 1024 * 1024,
-    'TiB': 1000 * 1000 * 1000 * 1000,
-    'GiB': 1000 * 1000 * 1000,
-    'MiB': 1000 * 1000,
-    'KiB': 1000,
-}
-
 _XPATH_CACHE: Dict[str, XPath] = {}
 _LANG_TO_LC_CACHE: Dict[str, Dict[str, str]] = {}
 
 _FASTTEXT_MODEL: Optional["fasttext.FastText._FastText"] = None  # type: ignore
-"""fasttext model to predict laguage of a search term"""
+"""fasttext model to predict language of a search term"""
 
 SEARCH_LANGUAGE_CODES = frozenset([searxng_locale[0].split('-')[0] for searxng_locale in sxng_locales])
 """Languages supported by most searxng engines (:py:obj:`searx.sxng_locales.sxng_locales`)."""
@@ -69,11 +61,9 @@ class _NotSetClass:  # pylint: disable=too-few-public-methods
 _NOTSET = _NotSetClass()
 
 
-def searx_useragent() -> str:
-    """Return the searx User Agent"""
-    return 'searx/{searx_version} {suffix}'.format(
-        searx_version=VERSION_TAG, suffix=settings['outgoing']['useragent_suffix']
-    ).strip()
+def searxng_useragent() -> str:
+    """Return the SearXNG User Agent"""
+    return f"SearXNG/{VERSION_TAG} {settings['outgoing']['useragent_suffix']}".strip()
 
 
 def gen_useragent(os_string: Optional[str] = None) -> str:
@@ -84,11 +74,7 @@ def gen_useragent(os_string: Optional[str] = None) -> str:
     return USER_AGENTS['ua'].format(os=os_string or choice(USER_AGENTS['os']), version=choice(USER_AGENTS['versions']))
 
 
-class _HTMLTextExtractorException(Exception):
-    """Internal exception raised when the HTML is invalid"""
-
-
-class _HTMLTextExtractor(HTMLParser):
+class HTMLTextExtractor(HTMLParser):
     """Internal class to extract text from HTML"""
 
     def __init__(self):
@@ -106,7 +92,8 @@ class _HTMLTextExtractor(HTMLParser):
             return
 
         if tag != self.tags[-1]:
-            raise _HTMLTextExtractorException()
+            self.result.append(f"</{tag}>")
+            return
 
         self.tags.pop()
 
@@ -159,19 +146,28 @@ def html_to_text(html_str: str) -> str:
         >>> html_to_text('<style>.span { color: red; }</style><span>Example</span>')
         'Example'
 
-        >>> html_to_text(r'regexp: (?<![a-zA-Z]')
+        >>> html_to_text(r'regexp: (?&lt;![a-zA-Z]')
         'regexp: (?<![a-zA-Z]'
+
+        >>> html_to_text(r'<p><b>Lorem ipsum </i>dolor sit amet</p>')
+        'Lorem ipsum </i>dolor sit amet</p>'
+
+        >>> html_to_text(r'&#x3e &#x3c &#97')
+        '> < a'
+
     """
+    if not html_str:
+        return ""
     html_str = html_str.replace('\n', ' ').replace('\r', ' ')
     html_str = ' '.join(html_str.split())
-    s = _HTMLTextExtractor()
+    s = HTMLTextExtractor()
     try:
         s.feed(html_str)
+        s.close()
     except AssertionError:
-        s = _HTMLTextExtractor()
+        s = HTMLTextExtractor()
         s.feed(escape(html_str, quote=True))
-    except _HTMLTextExtractorException:
-        logger.debug("HTMLTextExtractor: invalid HTML\n%s", html_str)
+        s.close()
     return s.get_text()
 
 
@@ -329,29 +325,6 @@ def dict_subset(dictionary: MutableMapping, properties: Set[str]) -> Dict:
     return {k: dictionary[k] for k in properties if k in dictionary}
 
 
-def get_torrent_size(filesize: str, filesize_multiplier: str) -> Optional[int]:
-    """
-
-    Args:
-        * filesize (str): size
-        * filesize_multiplier (str): TB, GB, .... TiB, GiB...
-
-    Returns:
-        * int: number of bytes
-
-    Example:
-        >>> get_torrent_size('5', 'GB')
-        5368709120
-        >>> get_torrent_size('3.14', 'MiB')
-        3140000
-    """
-    try:
-        multiplier = _STORAGE_UNIT_VALUE.get(filesize_multiplier, 1)
-        return int(float(filesize) * multiplier)
-    except ValueError:
-        return None
-
-
 def humanize_bytes(size, precision=2):
     """Determine the *human readable* value of bytes on 1024 base (1KB=1024B)."""
     s = ['B ', 'KB', 'MB', 'GB', 'TB']
@@ -364,11 +337,52 @@ def humanize_bytes(size, precision=2):
     return "%.*f %s" % (precision, size, s[p])
 
 
+def humanize_number(size, precision=0):
+    """Determine the *human readable* value of a decimal number."""
+    s = ['', 'K', 'M', 'B', 'T']
+
+    x = len(s)
+    p = 0
+    while size > 1000 and p < x:
+        p += 1
+        size = size / 1000.0
+    return "%.*f%s" % (precision, size, s[p])
+
+
 def convert_str_to_int(number_str: str) -> int:
     """Convert number_str to int or 0 if number_str is not a number."""
     if number_str.isdigit():
         return int(number_str)
     return 0
+
+
+def extr(txt: str, begin: str, end: str, default: str = ""):
+    """Extract the string between ``begin`` and ``end`` from ``txt``
+
+    :param txt:     String to search in
+    :param begin:   First string to be searched for
+    :param end:     Second string to be searched for after ``begin``
+    :param default: Default value if one of ``begin`` or ``end`` is not
+                    found.  Defaults to an empty string.
+    :return: The string between the two search-strings ``begin`` and ``end``.
+             If at least one of ``begin`` or ``end`` is not found, the value of
+             ``default`` is returned.
+
+    Examples:
+      >>> extr("abcde", "a", "e")
+      "bcd"
+      >>> extr("abcde", "a", "z", deafult="nothing")
+      "nothing"
+
+    """
+
+    # From https://github.com/mikf/gallery-dl/blob/master/gallery_dl/text.py#L129
+
+    try:
+        first = txt.index(begin) + len(begin)
+        return txt[first : txt.index(end, first)]
+    except ValueError:
+        return default
 
 
 def int_or_zero(num: Union[List[str], str]) -> int:
@@ -457,6 +471,21 @@ def ecma_unescape(string: str) -> str:
     # "%20" becomes " ", "%F3" becomes "ó"
     string = _ECMA_UNESCAPE2_RE.sub(lambda e: chr(int(e.group(1), 16)), string)
     return string
+
+
+def remove_pua_from_str(string):
+    """Removes unicode's "PRIVATE USE CHARACTER"s (PUA_) from a string.
+
+    .. _PUA: https://en.wikipedia.org/wiki/Private_Use_Areas
+    """
+    pua_ranges = ((0xE000, 0xF8FF), (0xF0000, 0xFFFFD), (0x100000, 0x10FFFD))
+    s = []
+    for c in string:
+        i = ord(c)
+        if any(a <= i <= b for (a, b) in pua_ranges):
+            continue
+        s.append(c)
+    return "".join(s)
 
 
 def get_string_replaces_function(replaces: Dict[str, str]) -> Callable[[str], str]:
@@ -604,6 +633,68 @@ def _get_fasttext_model() -> "fasttext.FastText._FastText":  # type: ignore
     return _FASTTEXT_MODEL
 
 
+def get_embeded_stream_url(url):
+    """
+    Converts a standard video URL into its embed format. Supported services include Youtube,
+    Facebook, Instagram, TikTok, Dailymotion, and Bilibili.
+    """
+    parsed_url = urlparse(url)
+    iframe_src = None
+
+    # YouTube
+    if parsed_url.netloc in ['www.youtube.com', 'youtube.com'] and parsed_url.path == '/watch' and parsed_url.query:
+        video_id = parse_qs(parsed_url.query).get('v', [])
+        if video_id:
+            iframe_src = 'https://www.youtube-nocookie.com/embed/' + video_id[0]
+
+    # Facebook
+    elif parsed_url.netloc in ['www.facebook.com', 'facebook.com']:
+        encoded_href = urlencode({'href': url})
+        iframe_src = 'https://www.facebook.com/plugins/video.php?allowfullscreen=true&' + encoded_href
+
+    # Instagram
+    elif parsed_url.netloc in ['www.instagram.com', 'instagram.com'] and parsed_url.path.startswith('/p/'):
+        if parsed_url.path.endswith('/'):
+            iframe_src = url + 'embed'
+        else:
+            iframe_src = url + '/embed'
+
+    # TikTok
+    elif (
+        parsed_url.netloc in ['www.tiktok.com', 'tiktok.com']
+        and parsed_url.path.startswith('/@')
+        and '/video/' in parsed_url.path
+    ):
+        path_parts = parsed_url.path.split('/video/')
+        video_id = path_parts[1]
+        iframe_src = 'https://www.tiktok.com/embed/' + video_id
+
+    # Dailymotion
+    elif parsed_url.netloc in ['www.dailymotion.com', 'dailymotion.com'] and parsed_url.path.startswith('/video/'):
+        path_parts = parsed_url.path.split('/')
+        if len(path_parts) == 3:
+            video_id = path_parts[2]
+            iframe_src = 'https://www.dailymotion.com/embed/video/' + video_id
+
+    # Bilibili
+    elif parsed_url.netloc in ['www.bilibili.com', 'bilibili.com'] and parsed_url.path.startswith('/video/'):
+        path_parts = parsed_url.path.split('/')
+
+        video_id = path_parts[2]
+        param_key = None
+        if video_id.startswith('av'):
+            video_id = video_id[2:]
+            param_key = 'aid'
+        elif video_id.startswith('BV'):
+            param_key = 'bvid'
+
+        iframe_src = (
+            f'https://player.bilibili.com/player.html?{param_key}={video_id}&high_quality=1&autoplay=false&danmaku=0'
+        )
+
+    return iframe_src
+
+
 def detect_language(text: str, threshold: float = 0.3, only_search_languages: bool = False) -> Optional[str]:
     """Detect the language of the ``text`` parameter.
 
@@ -741,5 +832,32 @@ def js_variable_to_python(js_variable):
     s = _JS_DECIMAL_RE.sub(":0.", s)
     # replace the surogate character by colon
     s = s.replace(chr(1), ':')
+    # replace single-quote followed by comma with double-quote and comma
+    # {"a": "\"12\"',"b": "13"}
+    # becomes
+    # {"a": "\"12\"","b": "13"}
+    s = s.replace("',", "\",")
     # load the JSON and return the result
     return json.loads(s)
+
+
+def parse_duration_string(duration_str: str) -> timedelta | None:
+    """Parse a time string in format MM:SS or HH:MM:SS and convert it to a `timedelta` object.
+
+    Returns None if the provided string doesn't match any of the formats.
+    """
+    duration_str = duration_str.strip()
+
+    if not duration_str:
+        return None
+
+    try:
+        # prepending ["00"] here inits hours to 0 if they are not provided
+        time_parts = (["00"] + duration_str.split(":"))[:3]
+        hours, minutes, seconds = map(int, time_parts)
+        return timedelta(hours=hours, minutes=minutes, seconds=seconds)
+
+    except (ValueError, TypeError):
+        pass
+
+    return None

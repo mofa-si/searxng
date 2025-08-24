@@ -9,18 +9,18 @@ import csv
 import hashlib
 import hmac
 import re
-import inspect
 import itertools
 import json
 from datetime import datetime, timedelta
-from typing import Iterable, List, Tuple, Dict, TYPE_CHECKING
+from typing import Iterable, List, Tuple, TYPE_CHECKING
 
 from io import StringIO
 from codecs import getincrementalencoder
 
 from flask_babel import gettext, format_date  # type: ignore
 
-from searx import logger, settings
+from searx import logger, get_setting
+
 from searx.engines import DEFAULT_CATEGORY
 
 if TYPE_CHECKING:
@@ -123,17 +123,18 @@ def write_csv_response(csv: CSVWriter, rc: ResultContainer) -> None:  # pylint: 
 
     """
 
-    results = rc.get_ordered_results()
     keys = ('title', 'url', 'content', 'host', 'engine', 'score', 'type')
     csv.writerow(keys)
 
-    for row in results:
+    for res in rc.get_ordered_results():
+        row = res.as_dict()
         row['host'] = row['parsed_url'].netloc
         row['type'] = 'result'
         csv.writerow([row.get(key, '') for key in keys])
 
     for a in rc.answers:
-        row = {'title': a, 'type': 'answer'}
+        row = a.as_dict()
+        row['host'] = row['parsed_url'].netloc
         csv.writerow([row.get(key, '') for key in keys])
 
     for a in rc.suggestions:
@@ -158,18 +159,17 @@ class JSONEncoder(json.JSONEncoder):  # pylint: disable=missing-class-docstring
 
 def get_json_response(sq: SearchQuery, rc: ResultContainer) -> str:
     """Returns the JSON string of the results to a query (``application/json``)"""
-    results = rc.number_of_results
-    x = {
+    data = {
         'query': sq.query,
-        'number_of_results': results,
-        'results': rc.get_ordered_results(),
-        'answers': list(rc.answers),
+        'number_of_results': rc.number_of_results,
+        'results': [_.as_dict() for _ in rc.get_ordered_results()],
+        'answers': [_.as_dict() for _ in rc.answers],
         'corrections': list(rc.corrections),
         'infoboxes': rc.infoboxes,
         'suggestions': list(rc.suggestions),
         'unresponsive_engines': get_translated_errors(rc.unresponsive_engines),
     }
-    response = json.dumps(x, cls=JSONEncoder)
+    response = json.dumps(data, cls=JSONEncoder)
     return response
 
 
@@ -178,30 +178,22 @@ def get_themes(templates_path):
     return os.listdir(templates_path)
 
 
-def get_hash_for_file(file: pathlib.Path) -> str:
-    m = hashlib.sha1()
-    with file.open('rb') as f:
-        m.update(f.read())
-    return m.hexdigest()
+def get_static_file_list() -> list[str]:
+    file_list = []
+    static_path = pathlib.Path(str(get_setting("ui.static_path")))
 
-
-def get_static_files(static_path: str) -> Dict[str, str]:
-    static_files: Dict[str, str] = {}
-    static_path_path = pathlib.Path(static_path)
-
-    def walk(path: pathlib.Path):
-        for file in path.iterdir():
-            if file.name.startswith('.'):
+    def _walk(path: pathlib.Path):
+        for f in path.iterdir():
+            if f.name.startswith('.'):
                 # ignore hidden file
                 continue
-            if file.is_file():
-                static_files[str(file.relative_to(static_path_path))] = get_hash_for_file(file)
-            if file.is_dir() and file.name not in ('node_modules', 'src'):
-                # ignore "src" and "node_modules" directories
-                walk(file)
+            if f.is_file():
+                file_list.append(str(f.relative_to(static_path)))
+            if f.is_dir():
+                _walk(f)
 
-    walk(static_path_path)
-    return static_files
+    _walk(static_path)
+    return file_list
 
 
 def get_result_templates(templates_path):
@@ -316,21 +308,6 @@ def searxng_l10n_timespan(dt: datetime) -> str:  # pylint: disable=invalid-name
     return format_date(dt)
 
 
-def is_flask_run_cmdline():
-    """Check if the application was started using "flask run" command line
-
-    Inspect the callstack.
-    See https://github.com/pallets/flask/blob/master/src/flask/__main__.py
-
-    Returns:
-        bool: True if the application was started using "flask run".
-    """
-    frames = inspect.stack()
-    if len(frames) < 2:
-        return False
-    return frames[-2].filename.endswith('flask/cli.py')
-
-
 NO_SUBGROUPING = 'without further subgrouping'
 
 
@@ -347,7 +324,7 @@ def group_engines_in_tab(engines: Iterable[Engine]) -> List[Tuple[str, Iterable[
     def engine_sort_key(engine):
         return (engine.about.get('language', ''), engine.name)
 
-    tabs = list(settings['categories_as_tabs'].keys())
+    tabs = list(get_setting('categories_as_tabs').keys())
     subgroups = itertools.groupby(sorted(engines, key=get_subgroup), get_subgroup)
     sorted_groups = sorted(((name, list(engines)) for name, engines in subgroups), key=group_sort_key)
 

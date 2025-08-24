@@ -1,23 +1,25 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-data.help(){
+data.help() {
     cat <<EOF
 data.:
   all       : update searx/sxng_locales.py and searx/data/*
   traits    : update searx/data/engine_traits.json & searx/sxng_locales.py
   useragents: update searx/data/useragents.json with the most recent versions of Firefox
   locales   : update searx/data/locales.json from babel
+  currencies: update searx/data/currencies.json from wikidata
 EOF
 }
 
 data.all() {
-    (   set -e
+    (
+        set -e
 
         pyenv.activate
         data.traits
         data.useragents
-	data.locales
+        data.locales
 
         build_msg DATA "update searx/data/osm_keys_tags.json"
         pyenv.cmd python searxng_extra/update/update_osm_keys_tags.py
@@ -34,9 +36,9 @@ data.all() {
     )
 }
 
-
 data.traits() {
-    (   set -e
+    (
+        set -e
         pyenv.activate
         build_msg DATA "update searx/data/engine_traits.json"
         python searxng_extra/update/update_engine_traits.py
@@ -52,7 +54,8 @@ data.useragents() {
 }
 
 data.locales() {
-    (   set -e
+    (
+        set -e
         pyenv.activate
         build_msg DATA "update searx/data/locales.json"
         python searxng_extra/update/update_locales.py
@@ -60,14 +63,12 @@ data.locales() {
     dump_return $?
 }
 
-docs.prebuild() {
-    build_msg DOCS "build ${DOCS_BUILD}/includes"
+data.currencies() {
     (
         set -e
-        [ "$VERBOSE" = "1" ] && set -x
-        mkdir -p "${DOCS_BUILD}/includes"
-        ./utils/searxng.sh searxng.doc.rst >  "${DOCS_BUILD}/includes/searxng.rst"
-        pyenv.cmd searxng_extra/docs_prebuild
+        pyenv.activate
+        build_msg DATA "update searx/data/currencies.json"
+        python searxng_extra/update/update_currencies.py
     )
     dump_return $?
 }

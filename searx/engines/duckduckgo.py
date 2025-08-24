@@ -1,31 +1,37 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """
-DuckDuckGo Lite
-~~~~~~~~~~~~~~~
+DuckDuckGo WEB
+~~~~~~~~~~~~~~
 """
 
-from typing import TYPE_CHECKING
-import re
-from urllib.parse import urlencode
+from __future__ import annotations
+
 import json
+import re
+import typing
+
+from urllib.parse import quote_plus
+
 import babel
 import lxml.html
 
 from searx import (
     locales,
-    redislib,
     external_bang,
 )
 from searx.utils import (
     eval_xpath,
     eval_xpath_getindex,
+    extr,
     extract_text,
 )
 from searx.network import get  # see https://github.com/searxng/searxng/issues/762
-from searx import redisdb
 from searx.enginelib.traits import EngineTraits
+from searx.enginelib import EngineCache
+from searx.exceptions import SearxEngineCaptchaException
+from searx.result_types import EngineResults
 
-if TYPE_CHECKING:
+if typing.TYPE_CHECKING:
     import logging
 
     logger: logging.Logger
@@ -41,7 +47,7 @@ about = {
 }
 
 send_accept_language_header = True
-"""DuckDuckGo-Lite tries to guess user's prefered language from the HTTP
+"""DuckDuckGo-Lite tries to guess user's preferred language from the HTTP
 ``Accept-Language``.  Optional the user can select a region filter (but not a
 language).
 """
@@ -52,47 +58,29 @@ paging = True
 time_range_support = True
 safesearch = True  # user can't select but the results are filtered
 
-url = 'https://lite.duckduckgo.com/lite/'
-# url_ping = 'https://duckduckgo.com/t/sl_l'
+url = "https://html.duckduckgo.com/html/"
 
 time_range_dict = {'day': 'd', 'week': 'w', 'month': 'm', 'year': 'y'}
 form_data = {'v': 'l', 'api': 'd.js', 'o': 'json'}
 
-
-def cache_vqd(query, value):
-    """Caches a ``vqd`` value from a query."""
-    c = redisdb.client()
-    if c:
-        logger.debug("cache vqd value: %s", value)
-        key = 'SearXNG_ddg_web_vqd' + redislib.secret_hash(query)
-        c.set(key, value, ex=600)
+_CACHE: EngineCache = None  # type: ignore
+"""Persistent (SQLite) key/value cache that deletes its values after ``expire``
+seconds."""
 
 
-def get_vqd(query):
-    """Returns the ``vqd`` that fits to the *query*.  If there is no ``vqd`` cached
-    (:py:obj:`cache_vqd`) the query is sent to DDG to get a vqd value from the
-    response.
+def get_cache():
+    global _CACHE  # pylint: disable=global-statement
+    if _CACHE is None:
+        _CACHE = EngineCache("duckduckgo")  # type:ignore
+    return _CACHE
 
-    .. hint::
 
-       If an empty string is returned there are no results for the ``query`` and
-       therefore no ``vqd`` value.
+def get_vqd(query: str, region: str, force_request: bool = False) -> str:
+    """Returns the ``vqd`` that fits to the *query*.
 
-    DDG's bot detection is sensitive to the ``vqd`` value.  For some search terms
-    (such as extremely long search terms that are often sent by bots), no ``vqd``
-    value can be determined.
-
-    If SearXNG cannot determine a ``vqd`` value, then no request should go out
-    to DDG:
-
-        A request with a wrong ``vqd`` value leads to DDG temporarily putting
-        SearXNG's IP on a block list.
-
-        Requests from IPs in this block list run into timeouts.
-
-    Not sure, but it seems the block list is a sliding window: to get my IP rid
-    from the bot list I had to cool down my IP for 1h (send no requests from
-    that IP to DDG).
+    :param query: The query term
+    :param region: DDG's region code
+    :param force_request: force a request to get a vqd value from DDG
 
     TL;DR; the ``vqd`` value is needed to pass DDG's bot protection and is used
     by all request to DDG:
@@ -103,30 +91,52 @@ def get_vqd(query):
     - DuckDuckGo Videos: ``https://duckduckgo.com/v.js??q=...&vqd=...``
     - DuckDuckGo News: ``https://duckduckgo.com/news.js??q=...&vqd=...``
 
-    """
-    value = None
-    c = redisdb.client()
-    if c:
-        key = 'SearXNG_ddg_web_vqd' + redislib.secret_hash(query)
-        value = c.get(key)
-        if value or value == b'':
-            value = value.decode('utf-8')
-            logger.debug("re-use cached vqd value: %s", value)
-            return value
+    DDG's bot detection is sensitive to the ``vqd`` value.  For some search terms
+    (such as extremely long search terms that are often sent by bots), no ``vqd``
+    value can be determined.
 
-    query_url = 'https://duckduckgo.com/?' + urlencode({'q': query})
-    res = get(query_url)
-    doc = lxml.html.fromstring(res.text)
-    for script in doc.xpath("//script[@type='text/javascript']"):
-        script = script.text
-        if 'vqd="' in script:
-            value = script[script.index('vqd="') + 5 :]
-            value = value[: value.index('"')]
-            break
-    logger.debug("new vqd value: '%s'", value)
-    if value is not None:
-        cache_vqd(query, value)
+    If SearXNG cannot determine a ``vqd`` value, then no request should go out
+    to DDG.
+
+    .. attention::
+
+       A request with a wrong ``vqd`` value leads to DDG temporarily putting
+       SearXNG's IP on a block list.
+
+    Requests from IPs in this block list run into timeouts.  Not sure, but it
+    seems the block list is a sliding window: to get my IP rid from the bot list
+    I had to cool down my IP for 1h (send no requests from that IP to DDG).
+    """
+    cache = get_cache()
+    key = cache.secret_hash(f"{query}//{region}")
+    value = cache.get(key=key)
+    if value is not None and not force_request:
+        logger.debug("vqd: re-use cached value: %s", value)
+        return value
+
+    logger.debug("vqd: request value from from duckduckgo.com")
+    resp = get(f'https://duckduckgo.com/?q={quote_plus(query)}')
+    if resp.status_code == 200:  # type: ignore
+        value = extr(resp.text, 'vqd="', '"')  # type: ignore
+        if value:
+            logger.debug("vqd value from duckduckgo.com request: '%s'", value)
+        else:
+            logger.error("vqd: can't parse value from ddg response (return empty string)")
+            return ""
+    else:
+        logger.error("vqd: got HTTP %s from duckduckgo.com", resp.status_code)
+
+    if value:
+        cache.set(key=key, value=value)
+    else:
+        logger.error("none vqd value from duckduckgo.com: HTTP %s", resp.status_code)
     return value
+
+
+def set_vqd(query: str, region: str, value: str):
+    cache = get_cache()
+    key = cache.secret_hash(f"{query}//{region}")
+    cache.set(key=key, value=value, expire=3600)
 
 
 def get_ddg_lang(eng_traits: EngineTraits, sxng_locale, default='en_US'):
@@ -154,9 +164,10 @@ def get_ddg_lang(eng_traits: EngineTraits, sxng_locale, default='en_US'):
 
     .. hint::
 
-       `DDG-lite <https://lite.duckduckgo.com/lite>`__ does not offer a language
-       selection to the user, only a region can be selected by the user
-       (``eng_region`` from the example above).  DDG-lite stores the selected
+       `DDG-lite <https://lite.duckduckgo.com/lite>`__ and the *no Javascript*
+       page https://html.duckduckgo.com/html do not offer a language selection
+       to the user, only a region can be selected by the user (``eng_region``
+       from the example above).  DDG-lite and *no Javascript* store the selected
        region in a cookie::
 
          params['cookies']['kl'] = eng_region  # 'ar-es'
@@ -237,122 +248,148 @@ def quote_ddg_bangs(query):
 
 
 def request(query, params):
-
     query = quote_ddg_bangs(query)
 
-    # request needs a vqd argument
-    vqd = get_vqd(query)
+    if len(query) >= 500:
+        # DDG does not accept queries with more than 499 chars
+        params["url"] = None
+        return
 
-    eng_region = traits.get_region(params['searxng_locale'], traits.all_locale)
-    # eng_lang = get_ddg_lang(traits, params['searxng_locale'])
+    eng_region: str = traits.get_region(params['searxng_locale'], traits.all_locale)  # type: ignore
 
-    params['url'] = url
-    params['method'] = 'POST'
+    # Note: The API is reverse-engineered from DuckDuckGo's HTML webpage
+    # (https://html.duckduckgo.com/html/) and may be subject to additional bot detection mechanisms
+    # and breaking changes in the future.
+    #
+    # The params['data'] dictionary can have the following key parameters, in this order:
+    # - q (str): Search query string
+    # - b (str): Beginning parameter - empty string for first page requests
+    # - s (int): Search offset for pagination
+    # - nextParams (str): Continuation parameters from previous page response, typically empty
+    # - v (str): Typically 'l' for subsequent pages
+    # - o (str): Output format, typically 'json'
+    # - dc (int): Display count - value equal to offset (s) + 1
+    # - api (str): API endpoint identifier, typically 'd.js'
+    # - vqd (str): Validation query digest
+    # - kl (str): Keyboard language/region code (e.g., 'en-us')
+    # - df (str): Time filter, maps to values like 'd' (day), 'w' (week), 'm' (month), 'y' (year)
+
     params['data']['q'] = query
 
-    # The API is not documented, so we do some reverse engineering and emulate
-    # what https://lite.duckduckgo.com/lite/ does when you press "next Page"
-    # link again and again ..
-
-    params['headers']['Content-Type'] = 'application/x-www-form-urlencoded'
-    params['data']['vqd'] = vqd
-
-    # initial page does not have an offset
-    if params['pageno'] == 2:
-        # second page does have an offset of 20
-        offset = (params['pageno'] - 1) * 20
+    if params['pageno'] == 1:
+        params['data']['b'] = ""
+    elif params['pageno'] >= 2:
+        offset = 10 + (params['pageno'] - 2) * 15  # Page 2 = 10, Page 3+ = 10 + n*15
         params['data']['s'] = offset
-        params['data']['dc'] = offset + 1
-
-    elif params['pageno'] > 2:
-        # third and following pages do have an offset of 20 + n*50
-        offset = 20 + (params['pageno'] - 2) * 50
-        params['data']['s'] = offset
-        params['data']['dc'] = offset + 1
-
-    # initial page does not have additional data in the input form
-    if params['pageno'] > 1:
-
-        params['data']['o'] = form_data.get('o', 'json')
-        params['data']['api'] = form_data.get('api', 'd.js')
         params['data']['nextParams'] = form_data.get('nextParams', '')
         params['data']['v'] = form_data.get('v', 'l')
-        params['headers']['Referer'] = 'https://lite.duckduckgo.com/'
+        params['data']['o'] = form_data.get('o', 'json')
+        params['data']['dc'] = offset + 1
+        params['data']['api'] = form_data.get('api', 'd.js')
 
-    params['data']['kl'] = eng_region
-    params['cookies']['kl'] = eng_region
+        # vqd is required to request other pages after the first one
+        vqd = get_vqd(query, eng_region, force_request=False)
+        if vqd:
+            params['data']['vqd'] = vqd
+        else:
+            # Don't try to call follow up pages without a vqd value.
+            # DDG recognizes this as a request from a bot. This lowers the
+            # reputation of the SearXNG IP and DDG starts to activate CAPTCHAs.
+            params["url"] = None
+            return
+
+        if params['searxng_locale'].startswith("zh"):
+            # Some locales (at least China) do not have a "next page" button and DDG
+            # will return a HTTP/2 403 Forbidden for a request of such a page.
+            params["url"] = None
+            return
+
+    # Put empty kl in form data if language/region set to all
+    if eng_region == "wt-wt":
+        params['data']['kl'] = ""
+    else:
+        params['data']['kl'] = eng_region
 
     params['data']['df'] = ''
     if params['time_range'] in time_range_dict:
         params['data']['df'] = time_range_dict[params['time_range']]
         params['cookies']['df'] = time_range_dict[params['time_range']]
 
+    params['cookies']['kl'] = eng_region
+
+    params['url'] = url
+    params['method'] = 'POST'
+
+    params['headers']['Content-Type'] = 'application/x-www-form-urlencoded'
+    params['headers']['Referer'] = url
+    params['headers']['Sec-Fetch-Dest'] = "document"
+    params['headers']['Sec-Fetch-Mode'] = "navigate"  # at least this one is used by ddg's bot detection
+    params['headers']['Sec-Fetch-Site'] = "same-origin"
+    params['headers']['Sec-Fetch-User'] = "?1"
+
+    logger.debug("param headers: %s", params['headers'])
     logger.debug("param data: %s", params['data'])
     logger.debug("param cookies: %s", params['cookies'])
-    return params
 
 
-def response(resp):
+def is_ddg_captcha(dom):
+    """In case of CAPTCHA ddg response its own *not a Robot* dialog and is not
+    redirected to a CAPTCHA page."""
+
+    return bool(eval_xpath(dom, "//form[@id='challenge-form']"))
+
+
+def response(resp) -> EngineResults:
+    results = EngineResults()
 
     if resp.status_code == 303:
-        return []
+        return results
 
-    results = []
     doc = lxml.html.fromstring(resp.text)
 
-    result_table = eval_xpath(doc, '//html/body/form/div[@class="filters"]/table')
+    if is_ddg_captcha(doc):
+        # set suspend time to zero is OK --> ddg does not block the IP
+        raise SearxEngineCaptchaException(suspended_time=0, message=f"CAPTCHA ({resp.search_params['data'].get('kl')})")
 
-    if len(result_table) == 2:
-        # some locales (at least China) does not have a "next page" button and
-        # the layout of the HTML tables is different.
-        result_table = result_table[1]
-    elif not len(result_table) >= 3:
-        # no more results
-        return []
-    else:
-        result_table = result_table[2]
-        # update form data from response
-        form = eval_xpath(doc, '//html/body/form/div[@class="filters"]/table//input/..')
-        if len(form):
+    form = eval_xpath(doc, '//input[@name="vqd"]/..')
+    if len(form):
+        # some locales (at least China) does not have a "next page" button
+        form = form[0]
+        form_vqd = eval_xpath(form, '//input[@name="vqd"]/@value')[0]
+        set_vqd(
+            query=resp.search_params['data']['q'],
+            region=resp.search_params['data']['kl'],
+            value=str(form_vqd),
+        )
 
-            form = form[0]
-            form_data['v'] = eval_xpath(form, '//input[@name="v"]/@value')[0]
-            form_data['api'] = eval_xpath(form, '//input[@name="api"]/@value')[0]
-            form_data['o'] = eval_xpath(form, '//input[@name="o"]/@value')[0]
-            logger.debug('form_data: %s', form_data)
+    # just select "web-result" and ignore results of class "result--ad result--ad--small"
+    for div_result in eval_xpath(doc, '//div[@id="links"]/div[contains(@class, "web-result")]'):
 
-    tr_rows = eval_xpath(result_table, './/tr')
-    # In the last <tr> is the form of the 'previous/next page' links
-    tr_rows = tr_rows[:-1]
-
-    len_tr_rows = len(tr_rows)
-    offset = 0
-
-    while len_tr_rows >= offset + 4:
-
-        # assemble table rows we need to scrap
-        tr_title = tr_rows[offset]
-        tr_content = tr_rows[offset + 1]
-        offset += 4
-
-        # ignore sponsored Adds <tr class="result-sponsored">
-        if tr_content.get('class') == 'result-sponsored':
+        item = {}
+        title = eval_xpath(div_result, './/h2/a')
+        if not title:
+            # this is the "No results." item in the result list
             continue
+        item["title"] = extract_text(title)
+        item["url"] = eval_xpath(div_result, './/h2/a/@href')[0]
+        item["content"] = extract_text(
+            eval_xpath_getindex(div_result, './/a[contains(@class, "result__snippet")]', 0, [])
+        )
+        results.append(item)
 
-        a_tag = eval_xpath_getindex(tr_title, './/td//a[@class="result-link"]', 0, None)
-        if a_tag is None:
-            continue
+    zero_click_info_xpath = '//div[@id="zero_click_abstract"]'
+    zero_click = extract_text(eval_xpath(doc, zero_click_info_xpath)).strip()  # type: ignore
 
-        td_content = eval_xpath_getindex(tr_content, './/td[@class="result-snippet"]', 0, None)
-        if td_content is None:
-            continue
-
-        results.append(
-            {
-                'title': a_tag.text_content(),
-                'content': extract_text(td_content),
-                'url': a_tag.get('href'),
-            }
+    if zero_click and (
+        "Your IP address is" not in zero_click
+        and "Your user agent:" not in zero_click
+        and "URL Decoded:" not in zero_click
+    ):
+        results.add(
+            results.types.Answer(
+                answer=zero_click,
+                url=eval_xpath_getindex(doc, '//div[@id="zero_click_abstract"]/a/@href', 0),  # type: ignore
+            )
         )
 
     return results
@@ -362,7 +399,7 @@ def fetch_traits(engine_traits: EngineTraits):
     """Fetch languages & regions from DuckDuckGo.
 
     SearXNG's ``all`` locale maps DuckDuckGo's "Alle regions" (``wt-wt``).
-    DuckDuckGo's language "Browsers prefered language" (``wt_WT``) makes no
+    DuckDuckGo's language "Browsers preferred language" (``wt_WT``) makes no
     sense in a SearXNG request since SearXNG's ``all`` will not add a
     ``Accept-Language`` HTTP header.  The value in ``engine_traits.all_locale``
     is ``wt-wt`` (the region).
@@ -379,7 +416,9 @@ def fetch_traits(engine_traits: EngineTraits):
     SearXNG's locale.
 
     """
-    # pylint: disable=too-many-branches, too-many-statements
+    # pylint: disable=too-many-branches, too-many-statements, disable=import-outside-toplevel
+    from searx.utils import js_variable_to_python
+
     # fetch regions
 
     engine_traits.all_locale = 'wt-wt'
@@ -390,11 +429,9 @@ def fetch_traits(engine_traits: EngineTraits):
     if not resp.ok:  # type: ignore
         print("ERROR: response from DuckDuckGo is not OK.")
 
-    pos = resp.text.find('regions:{') + 8  # type: ignore
-    js_code = resp.text[pos:]  # type: ignore
-    pos = js_code.find('}') + 1
-    regions = json.loads(js_code[:pos])
+    js_code = extr(resp.text, 'regions:', ',snippetLengths')  # type: ignore
 
+    regions = json.loads(js_code)
     for eng_tag, name in regions.items():
 
         if eng_tag == 'wt-wt':
@@ -426,12 +463,9 @@ def fetch_traits(engine_traits: EngineTraits):
 
     engine_traits.custom['lang_region'] = {}
 
-    pos = resp.text.find('languages:{') + 10  # type: ignore
-    js_code = resp.text[pos:]  # type: ignore
-    pos = js_code.find('}') + 1
-    js_code = '{"' + js_code[1:pos].replace(':', '":').replace(',', ',"')
-    languages = json.loads(js_code)
+    js_code = extr(resp.text, 'languages:', ',regions')  # type: ignore
 
+    languages = js_variable_to_python(js_code)
     for eng_lang, name in languages.items():
 
         if eng_lang == 'wt_WT':

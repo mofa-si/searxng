@@ -35,7 +35,7 @@ def response(resp):
                 'title': result['title'],
                 'content': result['description'],
                 'thumbnail': result['image'],
-                'publishedDate': datetime.utcfromtimestamp(result['newestItemPubdate']),
+                'publishedDate': datetime.fromtimestamp(result['newestItemPubdate']),
                 'metadata': f"{result['author']}, {result['episodeCount']} episodes",
             }
         )

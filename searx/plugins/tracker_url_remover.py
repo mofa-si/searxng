@@ -1,42 +1,59 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-# pylint: disable=missing-module-docstring
+# pylint: disable=missing-module-docstring, unused-argument
 
-import re
-from urllib.parse import urlunparse, parse_qsl, urlencode
+from __future__ import annotations
+
+import logging
+import typing
 
 from flask_babel import gettext
 
-regexes = {
-    re.compile(r'utm_[^&]+'),
-    re.compile(r'(wkey|wemail)[^&]*'),
-    re.compile(r'(_hsenc|_hsmi|hsCtaTracking|__hssc|__hstc|__hsfp)[^&]*'),
-    re.compile(r'&$'),
-}
+from searx.data import TRACKER_PATTERNS
 
-name = gettext('Tracker URL remover')
-description = gettext('Remove trackers arguments from the returned URL')
-default_on = True
-preference_section = 'privacy'
+from . import Plugin, PluginInfo
+
+if typing.TYPE_CHECKING:
+    import flask
+    from searx.search import SearchWithPlugins
+    from searx.extended_types import SXNG_Request
+    from searx.result_types import Result, LegacyResult
+    from searx.plugins import PluginCfg
 
 
-def on_result(_request, _search, result):
-    if 'parsed_url' not in result:
+log = logging.getLogger("searx.plugins.tracker_url_remover")
+
+
+class SXNGPlugin(Plugin):
+    """Remove trackers arguments from the returned URL."""
+
+    id = "tracker_url_remover"
+
+    def __init__(self, plg_cfg: "PluginCfg") -> None:
+
+        super().__init__(plg_cfg)
+        self.info = PluginInfo(
+            id=self.id,
+            name=gettext("Tracker URL remover"),
+            description=gettext("Remove trackers arguments from the returned URL"),
+            preference_section="privacy",
+        )
+
+    def init(self, app: "flask.Flask") -> bool:
+        TRACKER_PATTERNS.init()
         return True
 
-    query = result['parsed_url'].query
+    def on_result(self, request: "SXNG_Request", search: "SearchWithPlugins", result: Result) -> bool:
 
-    if query == "":
+        result.filter_urls(self.filter_url_field)
         return True
-    parsed_query = parse_qsl(query)
 
-    changes = 0
-    for i, (param_name, _) in enumerate(list(parsed_query)):
-        for reg in regexes:
-            if reg.match(param_name):
-                parsed_query.pop(i - changes)
-                changes += 1
-                result['parsed_url'] = result['parsed_url']._replace(query=urlencode(parsed_query))
-                result['url'] = urlunparse(result['parsed_url'])
-                break
+    @classmethod
+    def filter_url_field(cls, result: "Result|LegacyResult", field_name: str, url_src: str) -> bool | str:
+        """Returns bool ``True`` to use URL unchanged (``False`` to ignore URL).
+        If URL should be modified, the returned string is the new URL to use."""
 
-    return True
+        if not url_src:
+            log.debug("missing a URL in field %s", field_name)
+            return True
+
+        return TRACKER_PATTERNS.clean_url(url=url_src)

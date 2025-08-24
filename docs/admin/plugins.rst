@@ -1,16 +1,13 @@
-.. _plugins generic:
+.. _plugins admin:
 
 ===============
-Plugins builtin
+List of plugins
 ===============
 
-.. sidebar:: Further reading ..
+Further reading ..
 
-   - :ref:`dev plugin`
-
-Configuration defaults (at built time):
-
-:DO: Default on
+- :ref:`SearXNG settings <settings plugins>`
+- :ref:`dev plugin`
 
 .. _configured plugins:
 
@@ -22,18 +19,13 @@ Configuration defaults (at built time):
       :widths: 3 1 9
 
       * - Name
-        - DO
+        - Active
         - Description
 
-          JS & CSS dependencies
+      {% for plg in plugins %}
 
-      {% for plgin in plugins %}
-
-      * - {{plgin.name}}
-        - {{(plgin.default_on and "y") or ""}}
-        - {{plgin.description}}
-
-          {% for dep in (plgin.js_dependencies + plgin.css_dependencies) %}
-          | ``{{dep}}`` {% endfor %}
+      * - {{plg.info.name}}
+        - {{(plg.active and "yes") or "no"}}
+        - {{plg.info.description}}
 
       {% endfor %}

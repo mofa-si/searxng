@@ -7,7 +7,7 @@ import re
 
 from urllib.parse import urlencode
 from lxml import etree
-from searx.utils import searx_useragent
+from searx.utils import searxng_useragent
 
 # about
 about = {
@@ -31,7 +31,7 @@ paging = True
 number_of_results = 10
 
 # shortcuts for advanced search
-shorcut_dict = {
+shortcut_dict = {
     # user-friendly keywords
     'format:': 'dcformat:',
     'author:': 'dccreator:',
@@ -55,7 +55,7 @@ shorcut_dict = {
 
 def request(query, params):
     # replace shortcuts with API advanced search keywords
-    for key, val in shorcut_dict.items():
+    for key, val in shortcut_dict.items():
         query = re.sub(key, val, query)
 
     # basic search
@@ -69,7 +69,7 @@ def request(query, params):
 
     params['url'] = base_url.format(**string_args)
 
-    params['headers']['User-Agent'] = searx_useragent()
+    params['headers']['User-Agent'] = searxng_useragent()
     return params
 
 
@@ -80,8 +80,10 @@ def response(resp):
 
     for entry in search_results.xpath('./result/doc'):
         content = "No description available"
-
+        url = ""
+        title = ""
         date = datetime.now()  # needed in case no dcdate is available for an item
+
         for item in entry:
             if item.attrib["name"] == "dcdate":
                 date = item.text

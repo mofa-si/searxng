@@ -6,7 +6,7 @@
 from urllib.parse import quote, urljoin
 
 from lxml import html
-from searx.utils import extract_text, get_torrent_size
+from searx.utils import extract_text
 
 # about
 about = {
@@ -54,16 +54,11 @@ def response(resp):
 
         excerpt = result.xpath('.//div[@class="torrent_excerpt"]')[0]
         content = html.tostring(excerpt, encoding='unicode', method='text', with_tail=False)
-        # it is better to emit <br/> instead of |, but html tags are verboten
         content = content.strip().replace('\n', ' | ')
         content = ' '.join(content.split())
 
-        filesize = result.xpath('.//span[@class="torrent_size"]/text()')[0].split()[0]
-        filesize_multiplier = result.xpath('.//span[@class="torrent_size"]/text()')[0].split()[1]
+        filesize = result.xpath('.//span[@class="torrent_size"]/text()')[0]
         files = (result.xpath('.//span[@class="torrent_files"]/text()') or ['1'])[0]
-
-        # convert filesize to byte if possible
-        filesize = get_torrent_size(filesize, filesize_multiplier)
 
         # convert files to int if possible
         try:

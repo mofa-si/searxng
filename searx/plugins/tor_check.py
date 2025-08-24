@@ -1,91 +1,79 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """A plugin to check if the ip address of the request is a Tor exit-node if the
 user searches for ``tor-check``.  It fetches the tor exit node list from
-https://check.torproject.org/exit-addresses and parses all the IPs into a list,
-then checks if the user's IP address is in it.
-
-Enable in ``settings.yml``:
-
-.. code:: yaml
-
-  enabled_plugins:
-    ..
-    - 'Tor check plugin'
-
+:py:obj:`url_exit_list` and parses all the IPs into a list, then checks if the
+user's IP address is in it.
 """
+from __future__ import annotations
+from ipaddress import ip_address
+import typing
 
 import re
 from flask_babel import gettext
 from httpx import HTTPError
+
 from searx.network import get
+from searx.plugins import Plugin, PluginInfo
+from searx.result_types import EngineResults
 
-default_on = False
+if typing.TYPE_CHECKING:
+    from searx.search import SearchWithPlugins
+    from searx.extended_types import SXNG_Request
+    from searx.plugins import PluginCfg
 
-name = gettext("Tor check plugin")
-'''Translated name of the plugin'''
-
-description = gettext(
-    "This plugin checks if the address of the request is a Tor exit-node, and"
-    " informs the user if it is; like check.torproject.org, but from SearXNG."
-)
-'''Translated description of the plugin.'''
-
-preference_section = 'query'
-'''The preference section where the plugin is shown.'''
-
-query_keywords = ['tor-check']
-'''Query keywords shown in the preferences.'''
-
-query_examples = ''
-'''Query examples shown in the preferences.'''
 
 # Regex for exit node addresses in the list.
 reg = re.compile(r"(?<=ExitAddress )\S+")
 
+url_exit_list = "https://check.torproject.org/exit-addresses"
+"""URL to load Tor exit list from."""
 
-def post_search(request, search):
 
-    if search.search_query.pageno > 1:
-        return True
+class SXNGPlugin(Plugin):
+    """Rewrite hostnames, remove results or prioritize them."""
 
-    if search.search_query.query.lower() == "tor-check":
+    id = "tor_check"
+    keywords = ["tor-check", "tor_check", "torcheck", "tor", "tor check"]
 
-        # Request the list of tor exit nodes.
-        try:
-            resp = get("https://check.torproject.org/exit-addresses")
-            node_list = re.findall(reg, resp.text)
+    def __init__(self, plg_cfg: "PluginCfg") -> None:
+        super().__init__(plg_cfg)
+        self.info = PluginInfo(
+            id=self.id,
+            name=gettext("Tor check plugin"),
+            description=gettext(
+                "This plugin checks if the address of the request is a Tor exit-node, and"
+                " informs the user if it is; like check.torproject.org, but from SearXNG."
+            ),
+            preference_section="query",
+        )
 
-        except HTTPError:
-            # No answer, return error
-            search.result_container.answers["tor"] = {
-                "answer": gettext(
-                    "Could not download the list of Tor exit-nodes from: https://check.torproject.org/exit-addresses"
-                )
-            }
-            return True
+    def post_search(self, request: "SXNG_Request", search: "SearchWithPlugins") -> EngineResults:
+        results = EngineResults()
 
-        x_forwarded_for = request.headers.getlist("X-Forwarded-For")
+        if search.search_query.pageno > 1:
+            return results
 
-        if x_forwarded_for:
-            ip_address = x_forwarded_for[0]
-        else:
-            ip_address = request.remote_addr
+        if search.search_query.query.lower() in self.keywords:
 
-        if ip_address in node_list:
-            search.result_container.answers["tor"] = {
-                "answer": gettext(
-                    "You are using Tor and it looks like you have this external IP address: {ip_address}".format(
-                        ip_address=ip_address
-                    )
-                )
-            }
-        else:
-            search.result_container.answers["tor"] = {
-                "answer": gettext(
-                    "You are not using Tor and you have this external IP address: {ip_address}".format(
-                        ip_address=ip_address
-                    )
-                )
-            }
+            # Request the list of tor exit nodes.
+            try:
+                resp = get(url_exit_list)
+                node_list = re.findall(reg, resp.text)  # type: ignore
 
-    return True
+            except HTTPError:
+                # No answer, return error
+                msg = gettext("Could not download the list of Tor exit-nodes from")
+                results.add(results.types.Answer(answer=f"{msg} {url_exit_list}"))
+                return results
+
+            real_ip = ip_address(address=str(request.remote_addr)).compressed
+
+            if real_ip in node_list:
+                msg = gettext("You are using Tor and it looks like you have the external IP address")
+                results.add(results.types.Answer(answer=f"{msg} {real_ip}"))
+
+            else:
+                msg = gettext("You are not using Tor and you have the external IP address")
+                results.add(results.types.Answer(answer=f"{msg} {real_ip}"))
+
+        return results

@@ -28,7 +28,7 @@ from searx.enginelib.traits import EngineTraitsMap
 languages_file = Path(searx_dir) / 'sxng_locales.py'
 languages_file_header = """\
 # SPDX-License-Identifier: AGPL-3.0-or-later
-'''List of SearXNG's locale codes.
+'''List of SearXNG's locale codes used for the search language/region.
 
 .. hint::
 
@@ -85,7 +85,7 @@ def main():
 
 
 def fetch_traits_map():
-    """Fetchs supported languages for each engine and writes json file with those."""
+    """Fetches supported languages for each engine and writes json file with those."""
     network.set_timeout_for_thread(10.0)
 
     def log(msg):
@@ -101,8 +101,8 @@ def fetch_traits_map():
 def filter_locales(traits_map: EngineTraitsMap):
     """Filter language & region tags by a threshold."""
 
-    min_eng_per_region = 15
-    min_eng_per_lang = 20
+    min_eng_per_region = 18
+    min_eng_per_lang = 22
 
     _ = {}
     for eng in traits_map.values():

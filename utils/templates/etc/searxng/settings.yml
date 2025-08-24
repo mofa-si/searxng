@@ -9,6 +9,8 @@ general:
 search:
   safe_search: 2
   autocomplete: 'duckduckgo'
+  formats:
+    - html
 
 server:
   # Is overwritten by ${SEARXNG_SECRET}
@@ -16,39 +18,20 @@ server:
   limiter: true
   image_proxy: true
   # public URL of the instance, to ensure correct inbound links. Is overwritten
-  # by ${SEARXNG_URL}.
+  # by ${SEARXNG_BASE_URL}.
   # base_url: http://example.com/location
 
-redis:
-  # URL to connect redis database. Is overwritten by ${SEARXNG_REDIS_URL}.
-  url: unix:///usr/local/searxng-redis/run/redis.sock?db=0
-
-ui:
-  static_use_hash: true
+valkey:
+  # URL to connect valkey database. Is overwritten by ${SEARXNG_VALKEY_URL}.
+  url: valkey://localhost:6379/0
 
 # preferences:
 #   lock:
 #     - autocomplete
 #     - method
 
-enabled_plugins:
-  - 'Hash plugin'
-  - 'Self Informations'
-  - 'Tracker URL remover'
-  - 'Ahmia blacklist'
-  # - 'Hostname replace'  # see hostname_replace configuration below
-  # - 'Open Access DOI rewrite'
-
-# plugins:
-#   - only_show_green_results
-
-# hostname_replace:
+# engines:
 #
-#   # twitter --> nitter
-#   '(www\.)?twitter\.com$': 'nitter.net'
-
-engines:
-
 #   - name: fdroid
 #     disabled: false
 #
@@ -58,11 +41,3 @@ engines:
 #   - name: mediathekviewweb
 #     categories: TV
 #     disabled: false
-#
-#   - name: invidious
-#     disabled: false
-#     base_url:
-#       - https://invidious.snopyta.org
-#       - https://invidious.tiekoetter.com
-#       - https://invidio.xamh.de
-#       - https://inv.riverside.rocks

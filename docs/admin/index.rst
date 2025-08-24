@@ -10,11 +10,13 @@ Administrator documentation
    installation-docker
    installation-scripts
    installation-searxng
+   installation-granian
    installation-uwsgi
    installation-nginx
    installation-apache
    update-searxng
    answer-captcha
+   searx.favicons
    searx.limiter
    api
    architecture

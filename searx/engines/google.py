@@ -10,10 +10,14 @@ engines:
 - :ref:`google autocomplete`
 
 """
+from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
 import re
+import random
+import string
+import time
 from urllib.parse import urlencode
 from lxml import html
 import babel
@@ -25,6 +29,7 @@ from searx.locales import language_tag, region_tag, get_official_locales
 from searx.network import get  # see https://github.com/searxng/searxng/issues/762
 from searx.exceptions import SearxEngineCaptchaException
 from searx.enginelib.traits import EngineTraits
+from searx.result_types import EngineResults
 
 if TYPE_CHECKING:
     import logging
@@ -48,6 +53,10 @@ about = {
 categories = ['general', 'web']
 paging = True
 max_page = 50
+"""`Google max 50 pages`_
+
+.. _Google max 50 pages: https://github.com/searxng/searxng/issues/2982
+"""
 time_range_support = True
 safesearch = True
 
@@ -59,20 +68,35 @@ filter_mapping = {0: 'off', 1: 'medium', 2: 'high'}
 # specific xpath variables
 # ------------------------
 
-results_xpath = './/div[contains(@jscontroller, "SC7lYd")]'
-title_xpath = './/a/h3[1]'
-href_xpath = './/a[h3]/@href'
-content_xpath = './/div[@data-sncf]'
-
 # Suggestions are links placed in a *card-section*, we extract only the text
 # from the links not the links itself.
 suggestion_xpath = '//div[contains(@class, "EIaa9b")]//a'
 
-# UI_ASYNC = 'use_ac:true,_fmt:html' # returns a HTTP 500 when user search for
-#                                    # celebrities like '!google natasha allegri'
-#                                    # or '!google chris evans'
-UI_ASYNC = 'use_ac:true,_fmt:prog'
-"""Format of the response from UI's async request."""
+
+_arcid_range = string.ascii_letters + string.digits + "_-"
+_arcid_random: tuple[str, int] | None = None
+
+
+def ui_async(start: int) -> str:
+    """Format of the response from UI's async request.
+
+    - ``arc_id:<...>,use_ac:true,_fmt:prog``
+
+    The arc_id is random generated every hour.
+    """
+    global _arcid_random  # pylint: disable=global-statement
+
+    use_ac = "use_ac:true"
+    # _fmt:html returns a HTTP 500 when user search for celebrities like
+    # '!google natasha allegri' or '!google chris evans'
+    _fmt = "_fmt:prog"
+
+    # create a new random arc_id every hour
+    if not _arcid_random or (int(time.time()) - _arcid_random[1]) > 3600:
+        _arcid_random = (''.join(random.choices(_arcid_range, k=23)), int(time.time()))
+    arc_id = f"arc_id:srp_{_arcid_random[0]}_1{start:02}"
+
+    return ",".join([arc_id, use_ac, _fmt])
 
 
 def get_google_info(params, eng_traits):
@@ -262,8 +286,10 @@ def detect_google_sorry(resp):
 def request(query, params):
     """Google search request"""
     # pylint: disable=line-too-long
-    offset = (params['pageno'] - 1) * 10
+    start = (params['pageno'] - 1) * 10
+    str_async = ui_async(start)
     google_info = get_google_info(params, traits)
+    logger.debug("ARC_ID: %s", str_async)
 
     # https://www.google.de/search?q=corona&hl=de&lr=lang_de&start=0&tbs=qdr%3Ad&safe=medium
     query_url = (
@@ -276,7 +302,7 @@ def request(query, params):
                 'q': query,
                 **google_info['params'],
                 'filter': '0',
-                'start': offset,
+                'start': start,
                 # 'vet': '12ahUKEwik3ZbIzfn7AhXMX_EDHbUDBh0QxK8CegQIARAC..i',
                 # 'ved': '2ahUKEwik3ZbIzfn7AhXMX_EDHbUDBh0Q_skCegQIARAG',
                 # 'cs' : 1,
@@ -288,7 +314,7 @@ def request(query, params):
                 # 'sstk': 'AcOHfVkD7sWCSAheZi-0tx_09XDO55gTWY0JNq3_V26cNN-c8lfD45aZYPI8s_Bqp8s57AHz5pxchDtAGCA_cikAWSjy9kw3kgg'
                 # formally known as use_mobile_ui
                 'asearch': 'arc',
-                'async': UI_ASYNC,
+                'async': str_async,
             }
         )
     )
@@ -307,75 +333,87 @@ def request(query, params):
 # =26;[3,"dimg_ZNMiZPCqE4apxc8P3a2tuAQ_137"]a87;data:image/jpeg;base64,/9j/4AAQSkZJRgABA
 # ...6T+9Nl4cnD+gr9OK8I56/tX3l86nWYw//2Q==26;
 RE_DATA_IMAGE = re.compile(r'"(dimg_[^"]*)"[^;]*;(data:image[^;]*;[^;]*);')
+RE_DATA_IMAGE_end = re.compile(r'"(dimg_[^"]*)"[^;]*;(data:image[^;]*;[^;]*)$')
 
 
-def _parse_data_images(dom):
+def parse_data_images(text: str):
     data_image_map = {}
-    for img_id, data_image in RE_DATA_IMAGE.findall(dom.text_content()):
+
+    for img_id, data_image in RE_DATA_IMAGE.findall(text):
         end_pos = data_image.rfind('=')
         if end_pos > 0:
             data_image = data_image[: end_pos + 1]
         data_image_map[img_id] = data_image
+    last = RE_DATA_IMAGE_end.search(text)
+    if last:
+        data_image_map[last.group(1)] = last.group(2)
     logger.debug('data:image objects --> %s', list(data_image_map.keys()))
     return data_image_map
 
 
-def response(resp):
+def response(resp) -> EngineResults:
     """Get response from google's search request"""
     # pylint: disable=too-many-branches, too-many-statements
     detect_google_sorry(resp)
+    data_image_map = parse_data_images(resp.text)
 
-    results = []
+    results = EngineResults()
 
     # convert the text to dom
     dom = html.fromstring(resp.text)
-    data_image_map = _parse_data_images(dom)
 
     # results --> answer
     answer_list = eval_xpath(dom, '//div[contains(@class, "LGOjhe")]')
     for item in answer_list:
-        results.append(
-            {
-                'answer': item.xpath("normalize-space()"),
-                'url': (eval_xpath(item, '../..//a/@href') + [None])[0],
-            }
+        for bubble in eval_xpath(item, './/div[@class="nnFGuf"]'):
+            bubble.drop_tree()
+        results.add(
+            results.types.Answer(
+                answer=extract_text(item),
+                url=(eval_xpath(item, '../..//a/@href') + [None])[0],
+            )
         )
 
     # parse results
 
-    for result in eval_xpath_list(dom, results_xpath):  # pylint: disable=too-many-nested-blocks
+    for result in eval_xpath_list(dom, './/div[contains(@jscontroller, "SC7lYd")]'):
+        # pylint: disable=too-many-nested-blocks
 
         try:
-            title_tag = eval_xpath_getindex(result, title_xpath, 0, default=None)
+            title_tag = eval_xpath_getindex(result, './/a/h3[1]', 0, default=None)
             if title_tag is None:
                 # this not one of the common google results *section*
                 logger.debug('ignoring item from the result_xpath list: missing title')
                 continue
             title = extract_text(title_tag)
 
-            url = eval_xpath_getindex(result, href_xpath, 0, None)
+            url = eval_xpath_getindex(result, './/a[h3]/@href', 0, None)
             if url is None:
                 logger.debug('ignoring item from the result_xpath list: missing url of title "%s"', title)
                 continue
 
-            content_nodes = eval_xpath(result, content_xpath)
+            content_nodes = eval_xpath(result, './/div[contains(@data-sncf, "1")]')
+            for item in content_nodes:
+                for script in item.xpath(".//script"):
+                    script.getparent().remove(script)
+
             content = extract_text(content_nodes)
 
             if not content:
                 logger.debug('ignoring item from the result_xpath list: missing content of title "%s"', title)
                 continue
 
-            img_src = content_nodes[0].xpath('.//img/@src')
-            if img_src:
-                img_src = img_src[0]
-                if img_src.startswith('data:image'):
+            thumbnail = content_nodes[0].xpath('.//img/@src')
+            if thumbnail:
+                thumbnail = thumbnail[0]
+                if thumbnail.startswith('data:image'):
                     img_id = content_nodes[0].xpath('.//img/@id')
                     if img_id:
-                        img_src = data_image_map.get(img_id[0])
+                        thumbnail = data_image_map.get(img_id[0])
             else:
-                img_src = None
+                thumbnail = None
 
-            results.append({'url': url, 'title': title, 'content': content, 'img_src': img_src})
+            results.append({'url': url, 'title': title, 'content': content, 'thumbnail': thumbnail})
 
         except Exception as e:  # pylint: disable=broad-except
             logger.error(e, exc_info=True)
@@ -439,7 +477,7 @@ def fetch_traits(engine_traits: EngineTraits, add_domains: bool = True):
         try:
             locale = babel.Locale.parse(lang_map.get(eng_lang, eng_lang), sep='-')
         except babel.UnknownLocaleError:
-            print("ERROR: %s -> %s is unknown by babel" % (x.get("data-name"), eng_lang))
+            print("INFO:  google UI language %s (%s) is unknown by babel" % (eng_lang, x.text.split("(")[0].strip()))
             continue
         sxng_lang = language_tag(locale)
 

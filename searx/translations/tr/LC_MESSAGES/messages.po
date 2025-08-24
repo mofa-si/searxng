@@ -16,15 +16,28 @@
 # plawlost <ceo@plawlabs.org>, 2023.
 # Oğuz Ersen <oguz@ersen.moe>, 2024.
 # ggnoredo <mail@fahriuzun.com>, 2024.
-# return42 <return42@users.noreply.translate.codeberg.org>, 2024.
-# Oğuz Ersen <ersen@users.noreply.translate.codeberg.org>, 2024.
+# return42 <return42@users.noreply.translate.codeberg.org>, 2024, 2025.
+# Oğuz Ersen <ersen@users.noreply.translate.codeberg.org>, 2024, 2025.
+# Quitaxd <Quitaxd@users.noreply.translate.codeberg.org>, 2024.
+# sygmamess <sygmamess@users.noreply.translate.codeberg.org>, 2024, 2025.
+# ahmetax <ahmetax@users.noreply.translate.codeberg.org>, 2024, 2025.
+# ulsaa <ulsaa@users.noreply.translate.codeberg.org>, 2024, 2025.
+# Anonymous <anonymous@users.noreply.translate.codeberg.org>, 2025.
+# ggnoredo <ggnoredo@users.noreply.translate.codeberg.org>, 2025.
+# plawlost <plawlost@users.noreply.translate.codeberg.org>, 2025.
+# akinu <akinu@users.noreply.translate.codeberg.org>, 2025.
+# return42 <return42@noreply.codeberg.org>, 2025.
+# AhmetHakki1 <ahmethakki1@noreply.codeberg.org>, 2025.
+# Cookie_Monster <cookie_monster@noreply.codeberg.org>, 2025.
+# zbbhzdaajc <zbbhzdaajc@noreply.codeberg.org>, 2025.
+# musabustun <musabustun@noreply.codeberg.org>, 2025.
 msgid ""
 msgstr ""
 "Project-Id-Version: searx\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2024-02-25 15:26+0000\n"
-"PO-Revision-Date: 2024-03-18 11:53+0000\n"
-"Last-Translator: Oğuz Ersen <ersen@users.noreply.translate.codeberg.org>\n"
+"POT-Creation-Date: 2025-07-03 14:46+0000\n"
+"PO-Revision-Date: 2025-07-30 09:09+0000\n"
+"Last-Translator: musabustun <musabustun@noreply.codeberg.org>\n"
 "Language-Team: Turkish <https://translate.codeberg.org/projects/searxng/"
 "searxng/tr/>\n"
 "Language: tr\n"
@@ -32,8 +45,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Weblate 5.4.2\n"
-"Generated-By: Babel 2.14.0\n"
+"X-Generator: Weblate 5.12.2\n"
+"Generated-By: Babel 2.17.0\n"
 
 #. CONSTANT_NAMES['NO_SUBGROUPING']
 #: searx/searxng.msg
@@ -74,6 +87,16 @@ msgstr "görseller"
 #: searx/searxng.msg
 msgid "videos"
 msgstr "görüntüler"
+
+#. CATEGORY_NAMES['RADIO']
+#: searx/engines/radio_browser.py:151 searx/searxng.msg
+msgid "radio"
+msgstr "radyo"
+
+#. CATEGORY_NAMES['TV']
+#: searx/searxng.msg
+msgid "tv"
+msgstr "televizyon"
 
 #. CATEGORY_NAMES['IT']
 #: searx/searxng.msg
@@ -160,6 +183,11 @@ msgstr "aydınlık"
 msgid "dark"
 msgstr "karanlık"
 
+#. STYLE_NAMES['BLACK']
+#: searx/searxng.msg
+msgid "black"
+msgstr "siyah"
+
 #. BRAND_CUSTOM_LINKS['UPTIME']
 #: searx/searxng.msg
 msgid "Uptime"
@@ -170,116 +198,476 @@ msgstr "Çalışma Süresi"
 msgid "About"
 msgstr "Hakkında"
 
-#: searx/webapp.py:332
+#. WEATHER_TERMS['AVERAGE TEMP.']
+#: searx/searxng.msg
+msgid "Average temp."
+msgstr "Ortalama sıcaklık."
+
+#. WEATHER_TERMS['CLOUD COVER']
+#: searx/searxng.msg
+msgid "Cloud cover"
+msgstr "Bulut örtüsü"
+
+#. WEATHER_TERMS['CONDITION']
+#: searx/engines/duckduckgo_weather.py:45 searx/searxng.msg
+msgid "Condition"
+msgstr "Durum"
+
+#. WEATHER_TERMS['CURRENT CONDITION']
+#: searx/engines/duckduckgo_weather.py:118 searx/searxng.msg
+msgid "Current condition"
+msgstr "Şimdiki durum"
+
+#. WEATHER_TERMS['EVENING']
+#: searx/searxng.msg
+msgid "Evening"
+msgstr "Akşam"
+
+#. WEATHER_TERMS['FEELS LIKE']
+#: searx/engines/duckduckgo_weather.py:53 searx/searxng.msg
+msgid "Feels like"
+msgstr "hissettiren"
+
+#. WEATHER_TERMS['HUMIDITY']
+#: searx/engines/duckduckgo_weather.py:64 searx/searxng.msg
+#: searx/templates/simple/answer/weather.html:29
+msgid "Humidity"
+msgstr "Rutubet"
+
+#. WEATHER_TERMS['MAX TEMP.']
+#: searx/engines/duckduckgo_weather.py:77 searx/searxng.msg
+msgid "Max temp."
+msgstr "Max Sıcaklık.."
+
+#. WEATHER_TERMS['MIN TEMP.']
+#: searx/engines/duckduckgo_weather.py:73 searx/searxng.msg
+msgid "Min temp."
+msgstr "Min Sıcaklık"
+
+#. WEATHER_TERMS['MORNING']
+#: searx/searxng.msg
+msgid "Morning"
+msgstr "Gündüz"
+
+#. WEATHER_TERMS['NIGHT']
+#: searx/searxng.msg
+msgid "Night"
+msgstr "Gece"
+
+#. WEATHER_TERMS['NOON']
+#: searx/searxng.msg
+msgid "Noon"
+msgstr "Öğlen"
+
+#. WEATHER_TERMS['PRESSURE']
+#: searx/searxng.msg searx/templates/simple/answer/weather.html:25
+msgid "Pressure"
+msgstr "Basınç"
+
+#. WEATHER_TERMS['SUNRISE']
+#: searx/engines/duckduckgo_weather.py:81 searx/searxng.msg
+msgid "Sunrise"
+msgstr "gündoğumu"
+
+#. WEATHER_TERMS['SUNSET']
+#: searx/engines/duckduckgo_weather.py:82 searx/searxng.msg
+msgid "Sunset"
+msgstr "Gün batımı"
+
+#. WEATHER_TERMS['TEMPERATURE']
+#: searx/engines/duckduckgo_weather.py:48 searx/searxng.msg
+#: searx/templates/simple/answer/weather.html:17
+msgid "Temperature"
+msgstr "Sıcaklık"
+
+#. WEATHER_TERMS['UV INDEX']
+#: searx/engines/duckduckgo_weather.py:80 searx/searxng.msg
+msgid "UV index"
+msgstr "UV Endeksi"
+
+#. WEATHER_TERMS['VISIBILITY']
+#: searx/engines/duckduckgo_weather.py:62 searx/searxng.msg
+msgid "Visibility"
+msgstr "Görünürlük"
+
+#. WEATHER_TERMS['WIND']
+#: searx/engines/duckduckgo_weather.py:58 searx/searxng.msg
+#: searx/templates/simple/answer/weather.html:23
+msgid "Wind"
+msgstr "Rüzgâr"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Clear sky"
+msgstr "Açık gökyüzü"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Partly cloudy"
+msgstr "Parçalı bulutlu"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Cloudy"
+msgstr "Bulutlu"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Fair"
+msgstr "Güzel"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Fog"
+msgstr "Sis"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Light rain and thunder"
+msgstr "Gök gürültülü hafif yağmurlu"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Light rain showers and thunder"
+msgstr "Gök gürültülü hafif sağanak"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Light rain showers"
+msgstr "Hafif sağanak yağmur"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Light rain"
+msgstr "Hafif yağmur"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Rain and thunder"
+msgstr "Yağmurlu ve gök gürültülü"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Rain showers and thunder"
+msgstr "Yağmur sağanakları ve gök gürültüsü"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Rain showers"
+msgstr "Sağanak yağmur"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Rain"
+msgstr "Yağmur"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Heavy rain and thunder"
+msgstr "Sağanak yağmur ve fırtına"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Heavy rain showers and thunder"
+msgstr "Gök gürültülü şiddetli yağmur"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Heavy rain showers"
+msgstr "Şiddetli sağanak yağış"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Heavy rain"
+msgstr "Sağanak Yağmur"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Light sleet and thunder"
+msgstr "Hafif karla karışık yağmur ve gök gürültüsü"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Light sleet showers and thunder"
+msgstr "Hafif karla karışık yağmur ve gök gürültüsü"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Light sleet showers"
+msgstr "Hafif karla karışık yağmur"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Light sleet"
+msgstr "Hafif karla karışık yağmur"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Sleet and thunder"
+msgstr "Karla karışık yağmur ve gök gürültüsü"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Sleet showers and thunder"
+msgstr "Karla karışık yağmur ve gök gürültüsü"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Sleet showers"
+msgstr "Karla karışık yağmur"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Sleet"
+msgstr "Karla karışık yağmur"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Heavy sleet and thunder"
+msgstr "Şiddetli karla karışık yağmur ve gök gürültüsü"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Heavy sleet showers and thunder"
+msgstr "Şiddetli karla karışık yağmur ve gök gürültüsü"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Heavy sleet showers"
+msgstr "Şiddetli karla karışık yağmur"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Heavy sleet"
+msgstr "Yoğun karla karışık yağmur"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Light snow and thunder"
+msgstr "Hafif kar ve gök gürültüsü"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Light snow showers and thunder"
+msgstr "Hafif kar yağışı ve gök gürültüsü"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Light snow showers"
+msgstr "Hafif kar yağışı"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Light snow"
+msgstr "Hafif kar yağışı"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Snow and thunder"
+msgstr "Kar ve gök gürültüsü"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Snow showers and thunder"
+msgstr "Kar yağışı ve gök gürültüsü"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Snow showers"
+msgstr "Kar yağışı"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Snow"
+msgstr "Kar"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Heavy snow and thunder"
+msgstr "Yoğun kar ve gök gürültüsü"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Heavy snow showers and thunder"
+msgstr "Yoğun kar yağışı ve gök gürültüsü"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Heavy snow showers"
+msgstr "Yoğun kar yağışı"
+
+#. WEATHER_CONDITIONS
+#: searx/searxng.msg
+msgid "Heavy snow"
+msgstr "Yoğun kar yağışı"
+
+#. SOCIAL_MEDIA_TERMS['SUBSCRIBERS']
+#: searx/engines/lemmy.py:85 searx/searxng.msg
+msgid "subscribers"
+msgstr "aboneler"
+
+#. SOCIAL_MEDIA_TERMS['POSTS']
+#: searx/engines/lemmy.py:86 searx/searxng.msg
+msgid "posts"
+msgstr "gönderiler"
+
+#. SOCIAL_MEDIA_TERMS['ACTIVE USERS']
+#: searx/engines/lemmy.py:87 searx/searxng.msg
+msgid "active users"
+msgstr "aktif kullanıcılar"
+
+#. SOCIAL_MEDIA_TERMS['COMMENTS']
+#: searx/engines/discourse.py:157 searx/engines/hackernews.py:82
+#: searx/engines/lemmy.py:130 searx/searxng.msg
+msgid "comments"
+msgstr "yorumlar"
+
+#. SOCIAL_MEDIA_TERMS['USER']
+#: searx/engines/lemmy.py:129 searx/engines/lemmy.py:164 searx/searxng.msg
+msgid "user"
+msgstr "kullanıcı"
+
+#. SOCIAL_MEDIA_TERMS['COMMUNITY']
+#: searx/engines/lemmy.py:131 searx/engines/lemmy.py:165 searx/searxng.msg
+msgid "community"
+msgstr "topluluk"
+
+#. SOCIAL_MEDIA_TERMS['POINTS']
+#: searx/engines/hackernews.py:82 searx/searxng.msg
+msgid "points"
+msgstr "puanlar"
+
+#. SOCIAL_MEDIA_TERMS['TITLE']
+#: searx/searxng.msg
+msgid "title"
+msgstr "başlık"
+
+#. SOCIAL_MEDIA_TERMS['AUTHOR']
+#: searx/engines/hackernews.py:85 searx/searxng.msg
+msgid "author"
+msgstr "yazar"
+
+#. SOCIAL_MEDIA_TERMS['THREAD OPEN']
+#: searx/engines/discourse.py:149 searx/searxng.msg
+msgid "open"
+msgstr "açık"
+
+#. SOCIAL_MEDIA_TERMS['THREAD CLOSED']
+#: searx/engines/discourse.py:149 searx/searxng.msg
+msgid "closed"
+msgstr "kapalı"
+
+#. SOCIAL_MEDIA_TERMS['THREAD ANSWERED']
+#: searx/engines/discourse.py:160 searx/searxng.msg
+msgid "answered"
+msgstr "yanıtlandı"
+
+#: searx/webapp.py:292
 msgid "No item found"
 msgstr "Öğe bulunamadı"
 
-#: searx/engines/qwant.py:282
-#: searx/templates/simple/result_templates/images.html:23 searx/webapp.py:334
+#: searx/engines/qwant.py:291
+#: searx/templates/simple/result_templates/images.html:23 searx/webapp.py:294
 msgid "Source"
 msgstr "Kaynak"
 
-#: searx/webapp.py:336
+#: searx/webapp.py:296
 msgid "Error loading the next page"
 msgstr "Sonraki sayfa yüklenemedi"
 
-#: searx/webapp.py:483 searx/webapp.py:879
+#: searx/webapp.py:447 searx/webapp.py:845
 msgid "Invalid settings, please edit your preferences"
 msgstr "Geçersiz ayarlar, lütfen tercihlerinizi düzenleyin"
 
-#: searx/webapp.py:499
+#: searx/webapp.py:463
 msgid "Invalid settings"
 msgstr "Geçersiz ayarlar"
 
-#: searx/webapp.py:576 searx/webapp.py:658
+#: searx/webapp.py:540 searx/webapp.py:630
 msgid "search error"
 msgstr "arama hatası"
 
-#: searx/webutils.py:34
+#: searx/webutils.py:35
 msgid "timeout"
 msgstr "zaman aşımı"
 
-#: searx/webutils.py:35
+#: searx/webutils.py:36
 msgid "parsing error"
 msgstr "ayrıştırma hatası"
 
-#: searx/webutils.py:36
+#: searx/webutils.py:37
 msgid "HTTP protocol error"
 msgstr "HTTP protokol hatası"
 
-#: searx/webutils.py:37
+#: searx/webutils.py:38
 msgid "network error"
 msgstr "bağlantı hatası"
 
-#: searx/webutils.py:38
+#: searx/webutils.py:39
 msgid "SSL error: certificate validation has failed"
 msgstr "SSL Hatası: Sertifika doğrulaması başarısız oldu"
 
-#: searx/webutils.py:40
+#: searx/webutils.py:41
 msgid "unexpected crash"
 msgstr "beklenmeyen çökme"
 
-#: searx/webutils.py:47
+#: searx/webutils.py:48
 msgid "HTTP error"
 msgstr "HTTP hatası"
 
-#: searx/webutils.py:48
+#: searx/webutils.py:49
 msgid "HTTP connection error"
 msgstr "HTTP bağlantı hatası"
 
-#: searx/webutils.py:54
+#: searx/webutils.py:55
 msgid "proxy error"
 msgstr "proxy hatası"
 
-#: searx/webutils.py:55
+#: searx/webutils.py:56
 msgid "CAPTCHA"
 msgstr "CAPTCHA"
 
-#: searx/webutils.py:56
+#: searx/webutils.py:57
 msgid "too many requests"
 msgstr "çok fazla istek"
 
-#: searx/webutils.py:57
+#: searx/webutils.py:58
 msgid "access denied"
 msgstr "erişim engellendi"
 
-#: searx/webutils.py:58
+#: searx/webutils.py:59
 msgid "server API error"
 msgstr "sunucu API hatası"
 
-#: searx/webutils.py:77
+#: searx/webutils.py:78
 msgid "Suspended"
 msgstr "Askıya alındı"
 
-#: searx/webutils.py:315
+#: searx/webutils.py:313
+#, python-brace-format
 msgid "{minutes} minute(s) ago"
 msgstr "{minutes} dakika önce"
 
-#: searx/webutils.py:316
+#: searx/webutils.py:314
+#, python-brace-format
 msgid "{hours} hour(s), {minutes} minute(s) ago"
 msgstr "{hours} saat, {minutes} dakika önce"
 
-#: searx/answerers/random/answerer.py:73
-msgid "Random value generator"
-msgstr "Rastgele değer üreteci"
-
-#: searx/answerers/random/answerer.py:74
+#: searx/answerers/random.py:69
 msgid "Generate different random values"
 msgstr "Farklı rastgele değerler üret"
 
-#: searx/answerers/statistics/answerer.py:47
-msgid "Statistics functions"
-msgstr "İstatistik fonksiyonları"
+#: searx/answerers/statistics.py:36
+#, python-brace-format
+msgid "Compute {func} of the arguments"
+msgstr "Argümanların değerini hesapla {func}"
 
-#: searx/answerers/statistics/answerer.py:48
-msgid "Compute {functions} of the arguments"
-msgstr "Bağımsız değişkenlerin {functions} değerini hesapla"
-
-#: searx/engines/openstreetmap.py:160
-msgid "Get directions"
-msgstr "Yönleri al"
+#: searx/engines/openstreetmap.py:158
+msgid "Show route in map .."
+msgstr "Yol tarifini haritada goster .."
 
 #: searx/engines/pdbe.py:96
+#, python-brace-format
 msgid "{title} (OBSOLETE)"
 msgstr "{title} (ESKİ)"
 
@@ -287,31 +675,29 @@ msgstr "{title} (ESKİ)"
 msgid "This entry has been superseded by"
 msgstr "Bu girişin yerini alan"
 
-#: searx/engines/qwant.py:284
+#: searx/engines/qwant.py:293
 msgid "Channel"
 msgstr "Kanal"
 
-#: searx/engines/radio_browser.py:104
-msgid "radio"
-msgstr "radyo"
-
-#: searx/engines/radio_browser.py:106
+#: searx/engines/radio_browser.py:153
 msgid "bitrate"
 msgstr "bit hızı"
 
-#: searx/engines/radio_browser.py:107
+#: searx/engines/radio_browser.py:154
 msgid "votes"
 msgstr "oylar"
 
-#: searx/engines/radio_browser.py:108
+#: searx/engines/radio_browser.py:155
 msgid "clicks"
 msgstr "tıklamalar"
 
-#: searx/engines/seekr.py:194 searx/engines/zlibrary.py:129
+#: searx/engines/seekr.py:193 searx/engines/yummly.py:71
+#: searx/engines/zlibrary.py:137
 msgid "Language"
 msgstr "Dil"
 
-#: searx/engines/semantic_scholar.py:79
+#: searx/engines/semantic_scholar.py:101
+#, python-brace-format
 msgid ""
 "{numCitations} citations from the year {firstCitationVelocityYear} to "
 "{lastCitationVelocityYear}"
@@ -319,7 +705,7 @@ msgstr ""
 "{firstCitationVelocityYear} yılından {lastCitationVelocityYear} yılına "
 "kadar {numCitations} alıntı(lar)"
 
-#: searx/engines/tineye.py:40
+#: searx/engines/tineye.py:48
 msgid ""
 "Could not read that image url. This may be due to an unsupported file "
 "format. TinEye only supports images that are JPEG, PNG, GIF, BMP, TIFF or"
@@ -329,7 +715,7 @@ msgstr ""
 "yüzünden olabilir. TinEye sadece JPEG, PNG, GIF, BMP, TIFF veya WebP "
 "uzantılı görselleri destekliyor."
 
-#: searx/engines/tineye.py:46
+#: searx/engines/tineye.py:54
 msgid ""
 "The image is too simple to find matches. TinEye requires a basic level of"
 " visual detail to successfully identify matches."
@@ -337,57 +723,65 @@ msgstr ""
 "Fotoğraf aranmak için fazla basit. TinEye 'ın başarılı şekilde çalışması "
 "için basit detaylar gereklidir."
 
-#: searx/engines/tineye.py:52
+#: searx/engines/tineye.py:59
 msgid "The image could not be downloaded."
 msgstr "Görsel indirilemedi."
 
-#: searx/engines/wttr.py:101
-msgid "Morning"
-msgstr "Gündüz"
-
-#: searx/engines/wttr.py:101
-msgid "Noon"
-msgstr "Öğlen"
-
-#: searx/engines/wttr.py:101
-msgid "Evening"
-msgstr "Akşam"
-
-#: searx/engines/wttr.py:101
-msgid "Night"
-msgstr "Gece"
-
-#: searx/engines/zlibrary.py:130
+#: searx/engines/zlibrary.py:138
 msgid "Book rating"
 msgstr "Kitap değerlendirmesi"
 
-#: searx/engines/zlibrary.py:131
+#: searx/engines/zlibrary.py:139
 msgid "File quality"
 msgstr "Dosya kalitesi"
 
-#: searx/plugins/hash_plugin.py:24
-msgid "Converts strings to different hash digests."
-msgstr "Dizileri farklı özdeğerlerine çevirir."
+#: searx/plugins/ahmia_filter.py:32
+msgid "Ahmia blacklist"
+msgstr "Ahmia kara listesi"
 
-#: searx/plugins/hash_plugin.py:52
+#: searx/plugins/ahmia_filter.py:33
+msgid "Filter out onion results that appear in Ahmia's blacklist."
+msgstr "Ahmia kara listesinde görünen onion sonuçlarını filtrele"
+
+#: searx/plugins/calculator.py:38
+msgid "Basic Calculator"
+msgstr "Temel Hesap Makinesi"
+
+#: searx/plugins/calculator.py:39
+msgid "Calculate mathematical expressions via the search bar"
+msgstr "Arama çubuğunu kullanarak matematiksel ifadeleri hesaplayın"
+
+#: searx/plugins/hash_plugin.py:34
+msgid "Hash plugin"
+msgstr "Hash eklentisi"
+
+#: searx/plugins/hash_plugin.py:36
+msgid ""
+"Converts strings to different hash digests. Available functions: md5, "
+"sha1, sha224, sha256, sha384, sha512."
+msgstr ""
+"Dizileri farklı hash özetlerine dönüştürür. Kullanılabilir işlevler: md5, "
+"sha1, sha224, sha256, sha384, sha512."
+
+#: searx/plugins/hash_plugin.py:64
 msgid "hash digest"
 msgstr "özdeğer"
 
-#: searx/plugins/hostname_replace.py:9
-msgid "Hostname replace"
-msgstr "Sunucu adını değiştir"
+#: searx/plugins/hostnames.py:123
+msgid "Hostnames plugin"
+msgstr "Sunucu adı eklentisi"
 
-#: searx/plugins/hostname_replace.py:10
-msgid "Rewrite result hostnames or remove results based on the hostname"
+#: searx/plugins/hostnames.py:124
+msgid "Rewrite hostnames and remove or prioritize results based on the hostname"
 msgstr ""
-"Sonuçların sunucu adlarını tekrar yaz ya da sunucu adına göre sonuçları "
-"sil"
+"Ana bilgisayar adlarını yeniden yazın ve ana bilgisayar adına göre sonuçları "
+"kaldırın veya önceliklendirin."
 
-#: searx/plugins/oa_doi_rewrite.py:9
+#: searx/plugins/oa_doi_rewrite.py:55
 msgid "Open Access DOI rewrite"
 msgstr "Açık Erişim DOI yeniden yazma"
 
-#: searx/plugins/oa_doi_rewrite.py:10
+#: searx/plugins/oa_doi_rewrite.py:56
 msgid ""
 "Avoid paywalls by redirecting to open-access versions of publications "
 "when available"
@@ -395,23 +789,31 @@ msgstr ""
 "Mevcut olduğunda yayınların açık erişim sürümlerine yeniden yönlendirerek"
 " ödeme ekranlarını önle"
 
-#: searx/plugins/self_info.py:10
+#: searx/plugins/self_info.py:37
 msgid "Self Information"
 msgstr "kişisel bilgi"
 
-#: searx/plugins/self_info.py:11
+#: searx/plugins/self_info.py:39
 msgid ""
 "Displays your IP if the query is \"ip\" and your user agent if the query "
-"contains \"user agent\"."
+"is \"user-agent\"."
 msgstr ""
-"Sorgu \"ip\" ise IP'nizi ve sorgu \"kullanıcı tanıtıcısı\" içeriyorsa "
-"kullanıcı tanıtıcınızı görüntüler."
+"Sorgu \"ip\" ise IP adresinizi, \"user-agent\" ise kullanıcı aracınızı "
+"gösterir."
 
-#: searx/plugins/tor_check.py:25
+#: searx/plugins/self_info.py:52
+msgid "Your IP is: "
+msgstr "IP adresiniz: "
+
+#: searx/plugins/self_info.py:55
+msgid "Your user-agent is: "
+msgstr "Kullanıcı-ajanınız: "
+
+#: searx/plugins/tor_check.py:42
 msgid "Tor check plugin"
 msgstr "Tor kontrol eklentisi"
 
-#: searx/plugins/tor_check.py:28
+#: searx/plugins/tor_check.py:44
 msgid ""
 "This plugin checks if the address of the request is a Tor exit-node, and "
 "informs the user if it is; like check.torproject.org, but from SearXNG."
@@ -420,33 +822,38 @@ msgstr ""
 "kontrol eder ve varsa kullanıcıyı bilgilendirir; check.torproject.org "
 "gibi, ancak SearXNG'den."
 
-#: searx/plugins/tor_check.py:62
-msgid ""
-"Could not download the list of Tor exit-nodes from: "
-"https://check.torproject.org/exit-addresses"
-msgstr ""
-"Tor çıkış düğümlerinin listesi şu adresten indirilemedi: "
-"https://check.torproject.org/exit-addresses"
+#: searx/plugins/tor_check.py:65
+msgid "Could not download the list of Tor exit-nodes from"
+msgstr "Tor çıkış noktalarinin listesini indiremiyor"
 
-#: searx/plugins/tor_check.py:78
-msgid ""
-"You are using Tor and it looks like you have this external IP address: "
-"{ip_address}"
-msgstr ""
-"Tor kullanıyorsunuz ve şu harici IP adresine sahip olduğunuz anlaşılıyor:"
-" {ip_address}"
+#: searx/plugins/tor_check.py:72
+msgid "You are using Tor and it looks like you have the external IP address"
+msgstr "Su anda Tor'a baglisiniz ve dış IP adresiniz var gibi görünüyor"
 
-#: searx/plugins/tor_check.py:86
-msgid "You are not using Tor and you have this external IP address: {ip_address}"
-msgstr "Tor kullanmıyorsunuz ve şu harici IP adresine sahipsiniz: {ip_address}"
+#: searx/plugins/tor_check.py:76
+msgid "You are not using Tor and you have the external IP address"
+msgstr "Tor kullanmıyorsunuz ve harici IP adresiniz var"
 
-#: searx/plugins/tracker_url_remover.py:29
+#: searx/plugins/tracker_url_remover.py:35
 msgid "Tracker URL remover"
 msgstr "Takip URL kaldırıcı"
 
-#: searx/plugins/tracker_url_remover.py:30
+#: searx/plugins/tracker_url_remover.py:36
 msgid "Remove trackers arguments from the returned URL"
 msgstr "Takip parametrelerini URL'den kaldır"
+
+#: searx/plugins/unit_converter.py:49
+msgid "Unit converter plugin"
+msgstr "Birim dönüştürme eklentisi"
+
+#: searx/plugins/unit_converter.py:50
+msgid "Convert between units"
+msgstr "Birimler arasında dönüştürme"
+
+#: searx/result_types/answer.py:224
+#, python-brace-format
+msgid "{location}: {temperature}, {condition}"
+msgstr "{location}: {temperature}, {condition}"
 
 #: searx/templates/simple/404.html:4
 msgid "Page not found"
@@ -503,31 +910,31 @@ msgstr "Gizlilik politikası"
 msgid "Contact instance maintainer"
 msgstr "Sunucu sahibi ile iletişime geçin"
 
-#: searx/templates/simple/categories.html:26
+#: searx/templates/simple/categories.html:30
 msgid "Click on the magnifier to perform search"
 msgstr "Arama yapmak için büyütece tıklayın"
 
-#: searx/templates/simple/macros.html:36
+#: searx/templates/simple/macros.html:40
 msgid "Length"
 msgstr "Uzunluk"
 
-#: searx/templates/simple/macros.html:37
+#: searx/templates/simple/macros.html:41
+msgid "Views"
+msgstr "Görüntülemeler"
+
+#: searx/templates/simple/macros.html:42
 #: searx/templates/simple/result_templates/files.html:34
 #: searx/templates/simple/result_templates/images.html:19
 #: searx/templates/simple/result_templates/paper.html:6
 msgid "Author"
 msgstr "Hazırlayan"
 
-#: searx/templates/simple/macros.html:45
+#: searx/templates/simple/macros.html:50
 msgid "cached"
 msgstr "önbellek"
 
-#: searx/templates/simple/macros.html:45
-msgid "proxied"
-msgstr "proxylendi"
-
 #: searx/templates/simple/new_issue.html:64
-msgid "Start submiting a new issue on GitHub"
+msgid "Start submitting a new issue on GitHub"
 msgstr "GitHub'a Yeni bir hata göndeymeye başlayin"
 
 #: searx/templates/simple/new_issue.html:66
@@ -554,7 +961,7 @@ msgstr "Yukarıdaki bilgilerle Github'da bir sorun bildirin"
 msgid "No HTTPS"
 msgstr "HTTPS Yok"
 
-#: searx/templates/simple/elements/engines_msg.html:18
+#: searx/templates/simple/elements/engines_msg.html:14
 #: searx/templates/simple/preferences.html:69
 #: searx/templates/simple/preferences.html:70
 msgid "View error logs and submit a bug report"
@@ -591,63 +998,55 @@ msgstr "Başarısız kontrol deneme(leri) "
 msgid "Errors:"
 msgstr "Hatalar:"
 
-#: searx/templates/simple/preferences.html:162
+#: searx/templates/simple/preferences.html:163
 msgid "General"
 msgstr "Genel"
 
-#: searx/templates/simple/preferences.html:165
+#: searx/templates/simple/preferences.html:166
 msgid "Default categories"
 msgstr "Varsayılan kategoriler"
 
-#: searx/templates/simple/preferences.html:187
+#: searx/templates/simple/preferences.html:194
 msgid "User interface"
 msgstr "Kullanıcı arayüzü"
 
-#: searx/templates/simple/preferences.html:208
+#: searx/templates/simple/preferences.html:217
 msgid "Privacy"
 msgstr "Gizlilik"
 
-#: searx/templates/simple/preferences.html:221
+#: searx/templates/simple/preferences.html:232
 msgid "Engines"
 msgstr "Motorlar"
 
-#: searx/templates/simple/preferences.html:223
+#: searx/templates/simple/preferences.html:234
 msgid "Currently used search engines"
 msgstr "Şu anda kullanılan arama motorları"
 
-#: searx/templates/simple/preferences.html:231
+#: searx/templates/simple/preferences.html:243
 msgid "Special Queries"
 msgstr "Özel Arama Sorguları"
 
-#: searx/templates/simple/preferences.html:237
+#: searx/templates/simple/preferences.html:251
 msgid "Cookies"
 msgstr "Tanımlama Bilgileri"
 
-#: searx/templates/simple/results.html:23
-msgid "Answers"
-msgstr "Yanıtlar"
-
-#: searx/templates/simple/results.html:38
+#: searx/templates/simple/results.html:30
 msgid "Number of results"
 msgstr "Sonuç sayısı"
 
-#: searx/templates/simple/results.html:44
+#: searx/templates/simple/results.html:36
 msgid "Info"
 msgstr "Bilgi"
 
-#: searx/templates/simple/results.html:73
-msgid "Try searching for:"
-msgstr "Aramaya çalışılan:"
-
-#: searx/templates/simple/results.html:105
+#: searx/templates/simple/results.html:77
 msgid "Back to top"
 msgstr "Yukarıya dön"
 
-#: searx/templates/simple/results.html:123
+#: searx/templates/simple/results.html:95
 msgid "Previous page"
 msgstr "Önceki sayfa"
 
-#: searx/templates/simple/results.html:141
+#: searx/templates/simple/results.html:113
 msgid "Next page"
 msgstr "Sonraki sayfa"
 
@@ -674,7 +1073,7 @@ msgstr "ara"
 msgid "There is currently no data available. "
 msgstr "Şu anda mevcut veri yok. "
 
-#: searx/templates/simple/preferences/engines.html:18
+#: searx/templates/simple/preferences/engines.html:24
 #: searx/templates/simple/stats.html:25
 msgid "Engine name"
 msgstr "Motor adı"
@@ -687,12 +1086,13 @@ msgstr "Skor"
 msgid "Result count"
 msgstr "Sonuç sayısı"
 
-#: searx/templates/simple/preferences/engines.html:25
+#: searx/templates/simple/elements/engines_msg.html:7
+#: searx/templates/simple/preferences/engines.html:31
 #: searx/templates/simple/stats.html:28
 msgid "Response time"
 msgstr "Yanıt süresi"
 
-#: searx/templates/simple/preferences/engines.html:29
+#: searx/templates/simple/preferences/engines.html:35
 #: searx/templates/simple/stats.html:29
 msgid "Reliability"
 msgstr "Güvenilirlik"
@@ -758,21 +1158,42 @@ msgstr "Başarısız deneme"
 msgid "Comment(s)"
 msgstr "Yorum"
 
+#: searx/templates/simple/answer/translations.html:12
+#: searx/templates/simple/preferences/answerers.html:8
+msgid "Examples"
+msgstr "Örnekler"
+
+#: searx/templates/simple/answer/translations.html:21
+msgid "Definitions"
+msgstr "Tanımlar"
+
+#: searx/templates/simple/answer/translations.html:30
+msgid "Synonyms"
+msgstr "Eş Anlamlılar"
+
+#: searx/templates/simple/answer/weather.html:19
+msgid "Feels Like"
+msgstr "Hissedilen"
+
+#: searx/templates/simple/elements/answers.html:2
+msgid "Answers"
+msgstr "Yanıtlar"
+
 #: searx/templates/simple/elements/apis.html:3
 msgid "Download results"
 msgstr "Sonuçlarını indir"
 
-#: searx/templates/simple/elements/engines_msg.html:7
+#: searx/templates/simple/elements/corrections.html:2
+msgid "Try searching for:"
+msgstr "Aramaya çalışılan:"
+
+#: searx/templates/simple/elements/engines_msg.html:4
 msgid "Messages from the search engines"
 msgstr "Arama motorlarından gelen mesajlar"
 
-#: searx/templates/simple/elements/engines_msg.html:12
-msgid "Error!"
-msgstr "Hata!"
-
-#: searx/templates/simple/elements/engines_msg.html:13
-msgid "Engines cannot retrieve results"
-msgstr "Motorlar sonuçları alamıyor"
+#: searx/templates/simple/elements/engines_msg.html:7
+msgid "seconds"
+msgstr "s"
 
 #: searx/templates/simple/elements/search_url.html:3
 msgid "Search URL"
@@ -797,12 +1218,12 @@ msgstr "Öneriler"
 msgid "Search language"
 msgstr "Arama dili"
 
-#: searx/templates/simple/filters/languages.html:2
+#: searx/templates/simple/filters/languages.html:4
 #: searx/templates/simple/preferences/language.html:7
 msgid "Default language"
 msgstr "Varsayılan dil"
 
-#: searx/templates/simple/filters/languages.html:4
+#: searx/templates/simple/filters/languages.html:8
 #: searx/templates/simple/preferences/language.html:11
 msgid "Auto-detect"
 msgstr "Özdevimli algılama"
@@ -811,7 +1232,7 @@ msgstr "Özdevimli algılama"
 #: searx/templates/simple/filters/safesearch.html:2
 #: searx/templates/simple/filters/safesearch.html:3
 #: searx/templates/simple/filters/safesearch.html:4
-#: searx/templates/simple/preferences/engines.html:21
+#: searx/templates/simple/preferences/engines.html:27
 #: searx/templates/simple/preferences/safesearch.html:2
 msgid "SafeSearch"
 msgstr "Güvenli Arama"
@@ -832,7 +1253,7 @@ msgid "None"
 msgstr "Yok"
 
 #: searx/templates/simple/filters/time_range.html:1
-#: searx/templates/simple/preferences/engines.html:22
+#: searx/templates/simple/preferences/engines.html:28
 msgid "Time range"
 msgstr "Zaman aralığı"
 
@@ -901,13 +1322,13 @@ msgid "Go back to the previous page using the previous page button."
 msgstr "Önceki sayfa butonunu kullanarak bir önceki sayfaya geri dön."
 
 #: searx/templates/simple/preferences/answerers.html:4
-#: searx/templates/simple/preferences/engines.html:17
+#: searx/templates/simple/preferences/engines.html:23
 msgid "Allow"
 msgstr "İzin ver"
 
 #: searx/templates/simple/preferences/answerers.html:5
-msgid "Keywords"
-msgstr "Anahtar kelimeler"
+msgid "Keywords (first word in query)"
+msgstr "Anahtar kelimeler (sorgudaki ilk kelime)"
 
 #: searx/templates/simple/preferences/answerers.html:6
 #: searx/templates/simple/result_templates/packages.html:7
@@ -917,10 +1338,6 @@ msgstr "Ad"
 #: searx/templates/simple/preferences/answerers.html:7
 msgid "Description"
 msgstr "Açıklama"
-
-#: searx/templates/simple/preferences/answerers.html:8
-msgid "Examples"
-msgstr "Örnekler"
 
 #: searx/templates/simple/preferences/answerers.html:13
 msgid "This is the list of SearXNG's instant answering modules."
@@ -935,16 +1352,16 @@ msgid "Autocomplete"
 msgstr "Otomatik tamamlama"
 
 #: searx/templates/simple/preferences/autocomplete.html:15
-msgid "Find stuff as you type"
-msgstr "Yazarken bir şeyler bulun"
+msgid "Show possible queries as you type"
+msgstr "Yazarken olası sorguları göster"
 
 #: searx/templates/simple/preferences/center_alignment.html:2
 msgid "Center Alignment"
 msgstr "Ortaya hizalama"
 
 #: searx/templates/simple/preferences/center_alignment.html:14
-msgid "Displays results in the center of the page (Oscar layout)."
-msgstr "Sonuçları sayfanın ortasında görüntüler (Oscar düzeni)."
+msgid "Display results in the center of the page (Oscar layout)."
+msgstr "Sonuçları sayfanın ortasında göster (Oscar düzeni)."
 
 #: searx/templates/simple/preferences/cookies.html:2
 msgid ""
@@ -955,8 +1372,8 @@ msgstr ""
 "değerlerinin bir listesidir."
 
 #: searx/templates/simple/preferences/cookies.html:3
-msgid "With that list, you can assess SearXNG transparency."
-msgstr "Bu listeyle SeaXNG şeffaflığına ulaşbilirsiniz."
+msgid "With this list, you can assess the transparency of SearXNG."
+msgstr "Bu liste ile SearXNG'nin şeffaflığını değerlendirebilirsiniz."
 
 #: searx/templates/simple/preferences/cookies.html:9
 msgid "Cookie name"
@@ -984,11 +1401,11 @@ msgstr "Seçeneklerinizi farklı bir tarayıcıda yükleme URL'i"
 
 #: searx/templates/simple/preferences/cookies.html:43
 msgid ""
-"Specifying custom settings in the preferences URL can be used to sync "
-"preferences across devices."
+"A URL containing your preferences. This URL can be used to restore your "
+"settings on a different device."
 msgstr ""
-"Tercihler URL'sinde özel ayarları belirtmek, cihazlar arasında senkronize"
-" etmek için kullanılabilir."
+"Tercihlerinizi içeren bir URL. Bu URL, ayarlarınızı farklı bir cihazda "
+"geri yüklemek için kullanılabilir."
 
 #: searx/templates/simple/preferences/cookies.html:46
 msgid "Copy preferences hash"
@@ -1002,53 +1419,71 @@ msgstr "Geri yüklemek için kopyalanan tercihleri hash (URL olmadan) ekleyin"
 msgid "Preferences hash"
 msgstr "Hah tercihleri"
 
-#: searx/templates/simple/preferences/doi_resolver.html:2
+#: searx/templates/simple/preferences/doi_resolver.html:1
+msgid "Digital Object Identifier (DOI)"
+msgstr "Dijital Nesne Tanımlayıcı (DOI)"
+
+#: searx/templates/simple/preferences/doi_resolver.html:6
 msgid "Open Access DOI resolver"
 msgstr "Açık Erişim DOI çözümleyicisi"
 
-#: searx/templates/simple/preferences/doi_resolver.html:14
+#: searx/templates/simple/preferences/doi_resolver.html:18
 msgid "Select service used by DOI rewrite"
 msgstr "DOI rewrite tarafından kullanılan hizmeti seçin"
 
 #: searx/templates/simple/preferences/engines.html:9
 msgid ""
-"This tab does not exists in the user interface, but you can search in "
-"these engines by its !bangs."
+"This tab does not exist in the user interface, but you can search with "
+"these engines via !bangs."
 msgstr ""
-"Bu sekme kullanıcı arayüzünde yoktur, ancak bu motorlarda ona göre arama "
-"yapabilirsiniz."
+"Bu sekme kullanıcı arayüzünde mevcut değildir, ancak !bangs aracılığıyla bu "
+"motorlarla arama yapabilirsiniz."
 
-#: searx/templates/simple/preferences/engines.html:19
+#: searx/templates/simple/preferences/engines.html:15
+msgid "Enable all"
+msgstr "Hepsini etkinleştir"
+
+#: searx/templates/simple/preferences/engines.html:16
+msgid "Disable all"
+msgstr "Hepsini hızmet dışı bırak"
+
+#: searx/templates/simple/preferences/engines.html:25
 msgid "!bang"
 msgstr "!bang"
 
-#: searx/templates/simple/preferences/engines.html:20
+#: searx/templates/simple/preferences/engines.html:26
 msgid "Supports selected language"
 msgstr "Seçili dili destekler"
 
-#: searx/templates/simple/preferences/engines.html:23
+#: searx/templates/simple/preferences/engines.html:29
 msgid "Weight"
 msgstr "Ağırlık"
 
-#: searx/templates/simple/preferences/engines.html:27
+#: searx/templates/simple/preferences/engines.html:33
 msgid "Max time"
 msgstr "En fazla zaman"
 
+#: searx/templates/simple/preferences/favicon.html:2
+msgid "Favicon Resolver"
+msgstr "Favicon Çözümleyicisi"
+
+#: searx/templates/simple/preferences/favicon.html:15
+msgid "Display favicons near search results"
+msgstr "Arama sonuçlarının yanında favsimgelerini göster"
+
 #: searx/templates/simple/preferences/footer.html:2
 msgid ""
-"These settings are stored in your cookies, this allows us not to store "
+"These settings are stored in your cookies. This allows us not to store "
 "this data about you."
 msgstr ""
-"Bu ayarlar tanımlama bilgilerinde saklanır, bu sizin hakkınızda bu "
-"verileri saklamamamıza izin verir."
+"Bu ayarlar çerezlerinizde saklanır. Bu sayede sizinle ilgili bu verileri "
+"saklamamız gerekmez."
 
 #: searx/templates/simple/preferences/footer.html:3
-msgid ""
-"These cookies serve your sole convenience, we don't use these cookies to "
-"track you."
+msgid "These cookies serve your sole convenience; we don't use them to track you."
 msgstr ""
-"Bu tanımlama bilgileri size kolaylık sağlar, sizi izlemek için bu "
-"çerezleri kullanmayız."
+"Bu çerezler yalnızca sizin rahatlığınız için kullanılır; sizi takip etmek "
+"için kullanmayız."
 
 #: searx/templates/simple/preferences/footer.html:6
 msgid "Save"
@@ -1083,17 +1518,19 @@ msgid "Image proxy"
 msgstr "Görsel vekil sunucu"
 
 #: searx/templates/simple/preferences/image_proxy.html:14
-msgid "Proxying image results through SearXNG"
-msgstr "Resim sonuçları SearXNG üzerinden vekil sunucu ile iletiliyor"
+msgid "Proxy image results through SearXNG"
+msgstr "SearXNG aracılığıyla proxy görüntü sonuçları"
 
 #: searx/templates/simple/preferences/infinite_scroll.html:2
 msgid "Infinite scroll"
 msgstr "Sonsuz kaydırma"
 
 #: searx/templates/simple/preferences/infinite_scroll.html:14
-msgid "Automatically load next page when scrolling to bottom of current page"
+msgid ""
+"Automatically load the next page when scrolling to the bottom of the "
+"current page"
 msgstr ""
-"Şu anki sayfanın en altına kaydırıldığında sonraki sayfayı otomatik "
+"Mevcut sayfanın en altına kaydırıldığında bir sonraki sayfayı otomatik "
 "olarak yükle"
 
 #: searx/templates/simple/preferences/language.html:24
@@ -1127,12 +1564,12 @@ msgstr ""
 "da içerir. Tarayıcınız bu başlığı kaydedebilir"
 
 #: searx/templates/simple/preferences/results_on_new_tab.html:2
-msgid "Results on new tabs"
+msgid "Results in new tabs"
 msgstr "Sonuçlar yeni sekmelerde"
 
 #: searx/templates/simple/preferences/results_on_new_tab.html:14
-msgid "Open result links on new browser tabs"
-msgstr "Yeni tarayıcı sekmelerinde sonuçta ortaya çıkan bağlantıları aç"
+msgid "Open result links in new browser tabs"
+msgstr "Sonuç bağlantılarını yeni tarayıcı sekmelerinde aç"
 
 #: searx/templates/simple/preferences/safesearch.html:20
 msgid "Filter content"
@@ -1144,19 +1581,19 @@ msgstr "Kategori seçimine göre ara"
 
 #: searx/templates/simple/preferences/search_on_category_select.html:14
 msgid ""
-"Perform search immediately if a category selected. Disable to select "
-"multiple categories"
+"Perform a search immediately if a category is selected. Disable to select"
+" multiple categories"
 msgstr ""
-"Kategori seçildikten sonra aramayı hemen uygulayın. Birden fazla kategori"
-" seçmek için devre dışı bırakın"
+"Bir kategori seçildiğinde hemen arama yapın. Birden fazla kategori seçmek "
+"için devre dışı bırakın."
 
 #: searx/templates/simple/preferences/theme.html:2
 msgid "Theme"
 msgstr "Tema"
 
 #: searx/templates/simple/preferences/theme.html:14
-msgid "Change SearXNG layout"
-msgstr "SearXNG düzenini değiştir"
+msgid "Change the layout of SearXNG"
+msgstr "SearXNG'nin düzenini değiştirin"
 
 #: searx/templates/simple/preferences/theme.html:19
 msgid "Theme style"
@@ -1182,6 +1619,26 @@ msgstr "Arayüz dili"
 msgid "Change the language of the layout"
 msgstr "Düzen dilini değiştirin"
 
+#: searx/templates/simple/preferences/urlformatting.html:2
+msgid "URL formatting"
+msgstr "URL Formatı"
+
+#: searx/templates/simple/preferences/urlformatting.html:8
+msgid "Pretty"
+msgstr "Tatlı"
+
+#: searx/templates/simple/preferences/urlformatting.html:13
+msgid "Full"
+msgstr "Tam dolu"
+
+#: searx/templates/simple/preferences/urlformatting.html:18
+msgid "Host"
+msgstr "Host"
+
+#: searx/templates/simple/preferences/urlformatting.html:23
+msgid "Change result URL formatting"
+msgstr "Sonuç URL biçimlendirmesini değiştir"
+
 #: searx/templates/simple/result_templates/code.html:13
 msgid "repo"
 msgstr "depo"
@@ -1204,40 +1661,15 @@ msgstr "BU site herhangi bir açıklama sağlamadı."
 
 #: searx/templates/simple/result_templates/files.html:38
 #: searx/templates/simple/result_templates/images.html:22
-#: searx/templates/simple/result_templates/torrent.html:11
+#: searx/templates/simple/result_templates/torrent.html:18
 msgid "Filesize"
 msgstr "Dosya boyutu"
 
-#: searx/templates/simple/result_templates/files.html:39
-#: searx/templates/simple/result_templates/torrent.html:12
-msgid "Bytes"
-msgstr "Bayt"
-
 #: searx/templates/simple/result_templates/files.html:40
-#: searx/templates/simple/result_templates/torrent.html:13
-msgid "kiB"
-msgstr "kiB"
-
-#: searx/templates/simple/result_templates/files.html:41
-#: searx/templates/simple/result_templates/torrent.html:14
-msgid "MiB"
-msgstr "MiB"
-
-#: searx/templates/simple/result_templates/files.html:42
-#: searx/templates/simple/result_templates/torrent.html:15
-msgid "GiB"
-msgstr "GiB"
-
-#: searx/templates/simple/result_templates/files.html:43
-#: searx/templates/simple/result_templates/torrent.html:16
-msgid "TiB"
-msgstr "TiB"
-
-#: searx/templates/simple/result_templates/files.html:47
 msgid "Date"
 msgstr "Gün"
 
-#: searx/templates/simple/result_templates/files.html:49
+#: searx/templates/simple/result_templates/files.html:42
 #: searx/templates/simple/result_templates/paper.html:24
 msgid "Type"
 msgstr "Yaz"
@@ -1339,23 +1771,23 @@ msgstr "PDF"
 msgid "HTML"
 msgstr "HTML"
 
-#: searx/templates/simple/result_templates/torrent.html:6
+#: searx/templates/simple/result_templates/torrent.html:7
 msgid "magnet link"
 msgstr "magnet bağlantısı"
 
-#: searx/templates/simple/result_templates/torrent.html:7
+#: searx/templates/simple/result_templates/torrent.html:8
 msgid "torrent file"
 msgstr "torrent dosyası"
 
-#: searx/templates/simple/result_templates/torrent.html:9
+#: searx/templates/simple/result_templates/torrent.html:13
 msgid "Seeder"
 msgstr "Gönderenler"
 
-#: searx/templates/simple/result_templates/torrent.html:9
+#: searx/templates/simple/result_templates/torrent.html:14
 msgid "Leecher"
 msgstr "Çekenler"
 
-#: searx/templates/simple/result_templates/torrent.html:20
+#: searx/templates/simple/result_templates/torrent.html:19
 msgid "Number of Files"
 msgstr "Dosya Sayısı"
 
@@ -1607,7 +2039,7 @@ msgstr "görüntüyü gizle"
 #~ msgstr ""
 
 #~ msgid "Displays results in the center of the page (Oscar layout)."
-#~ msgstr ""
+#~ msgstr "Sonuçları sayfanın ortasında görüntüler (Oscar düzeni)."
 
 #~ msgid "preferences"
 #~ msgstr "tercihler"
@@ -1783,3 +2215,171 @@ msgstr "görüntüyü gizle"
 #~ "herhangi bir sonuç bulamadık. Lütfen, "
 #~ "başka bir sorgu kullanın veya daha "
 #~ "fazla kategoride arama yapın."
+
+#~ msgid "Rewrite result hostnames or remove results based on the hostname"
+#~ msgstr ""
+#~ "Sonuçların sunucu adlarını tekrar yaz ya"
+#~ " da sunucu adına göre sonuçları sil"
+
+#~ msgid "Bytes"
+#~ msgstr "Bayt"
+
+#~ msgid "kiB"
+#~ msgstr "kiB"
+
+#~ msgid "MiB"
+#~ msgstr "MiB"
+
+#~ msgid "GiB"
+#~ msgstr "GiB"
+
+#~ msgid "TiB"
+#~ msgstr "TiB"
+
+#~ msgid "Hostname replace"
+#~ msgstr "Sunucu adını değiştir"
+
+#~ msgid "Error!"
+#~ msgstr "Hata!"
+
+#~ msgid "Engines cannot retrieve results"
+#~ msgstr "Motorlar sonuçları alamıyor"
+
+#~ msgid "Start submiting a new issue on GitHub"
+#~ msgstr "GitHub'a Yeni bir hata göndeymeye başlayin"
+
+#~ msgid "dummy"
+#~ msgstr ""
+
+#~ msgid "Random value generator"
+#~ msgstr "Rastgele değer üreteci"
+
+#~ msgid "Statistics functions"
+#~ msgstr "İstatistik fonksiyonları"
+
+#~ msgid "Compute {functions} of the arguments"
+#~ msgstr "Bağımsız değişkenlerin {functions} değerini hesapla"
+
+#~ msgid "Get directions"
+#~ msgstr "Yönleri al"
+
+#~ msgid ""
+#~ "Displays your IP if the query is"
+#~ " \"ip\" and your user agent if "
+#~ "the query contains \"user agent\"."
+#~ msgstr ""
+#~ "Sorgu \"ip\" ise IP'nizi ve sorgu "
+#~ "\"kullanıcı tanıtıcısı\" içeriyorsa kullanıcı "
+#~ "tanıtıcınızı görüntüler."
+
+#~ msgid ""
+#~ "Could not download the list of Tor"
+#~ " exit-nodes from: https://check.torproject.org"
+#~ "/exit-addresses"
+#~ msgstr ""
+#~ "Tor çıkış düğümlerinin listesi şu "
+#~ "adresten indirilemedi: https://check.torproject.org"
+#~ "/exit-addresses"
+
+#~ msgid ""
+#~ "You are using Tor and it looks "
+#~ "like you have this external IP "
+#~ "address: {ip_address}"
+#~ msgstr ""
+#~ "Tor kullanıyorsunuz ve şu harici IP "
+#~ "adresine sahip olduğunuz anlaşılıyor: "
+#~ "{ip_address}"
+
+#~ msgid ""
+#~ "You are not using Tor and you "
+#~ "have this external IP address: "
+#~ "{ip_address}"
+#~ msgstr "Tor kullanmıyorsunuz ve şu harici IP adresine sahipsiniz: {ip_address}"
+
+#~ msgid "Keywords"
+#~ msgstr "Anahtar kelimeler"
+
+#~ msgid "/"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Specifying custom settings in the "
+#~ "preferences URL can be used to "
+#~ "sync preferences across devices."
+#~ msgstr ""
+#~ "Tercihler URL'sinde özel ayarları belirtmek,"
+#~ " cihazlar arasında senkronize etmek için"
+#~ " kullanılabilir."
+
+#~ msgid "proxied"
+#~ msgstr "proxylendi"
+
+#~ msgid ""
+#~ "This tab does not exists in the"
+#~ " user interface, but you can search"
+#~ " in these engines by its !bangs."
+#~ msgstr ""
+#~ "Bu sekme kullanıcı arayüzünde yoktur, "
+#~ "ancak bu motorlarda ona göre arama "
+#~ "yapabilirsiniz."
+
+#~ msgid "Results on new tabs"
+#~ msgstr "Sonuçlar yeni sekmelerde"
+
+#~ msgid "Open result links on new browser tabs"
+#~ msgstr "Yeni tarayıcı sekmelerinde sonuçta ortaya çıkan bağlantıları aç"
+
+#~ msgid "Find stuff as you type"
+#~ msgstr "Yazarken bir şeyler bulun"
+
+#~ msgid "Converts strings to different hash digests."
+#~ msgstr "Dizileri farklı özdeğerlerine çevirir."
+
+#~ msgid ""
+#~ "Rewrite hostnames, remove results or "
+#~ "prioritize them based on the hostname"
+#~ msgstr ""
+#~ "Sunucu adını tekrar yaz, sonuçları sil"
+#~ " veya sunucu adına göre öncelik ver"
+
+#~ msgid "With that list, you can assess SearXNG transparency."
+#~ msgstr "Bu listeyle SeaXNG şeffaflığına ulaşbilirsiniz."
+
+#~ msgid ""
+#~ "These settings are stored in your "
+#~ "cookies, this allows us not to "
+#~ "store this data about you."
+#~ msgstr ""
+#~ "Bu ayarlar tanımlama bilgilerinde saklanır,"
+#~ " bu sizin hakkınızda bu verileri "
+#~ "saklamamamıza izin verir."
+
+#~ msgid ""
+#~ "These cookies serve your sole "
+#~ "convenience, we don't use these cookies"
+#~ " to track you."
+#~ msgstr ""
+#~ "Bu tanımlama bilgileri size kolaylık "
+#~ "sağlar, sizi izlemek için bu çerezleri"
+#~ " kullanmayız."
+
+#~ msgid "Proxying image results through SearXNG"
+#~ msgstr "Resim sonuçları SearXNG üzerinden vekil sunucu ile iletiliyor"
+
+#~ msgid "Automatically load next page when scrolling to bottom of current page"
+#~ msgstr ""
+#~ "Şu anki sayfanın en altına "
+#~ "kaydırıldığında sonraki sayfayı otomatik "
+#~ "olarak yükle"
+
+#~ msgid ""
+#~ "Perform search immediately if a category"
+#~ " selected. Disable to select multiple "
+#~ "categories"
+#~ msgstr ""
+#~ "Kategori seçildikten sonra aramayı hemen "
+#~ "uygulayın. Birden fazla kategori seçmek "
+#~ "için devre dışı bırakın"
+
+#~ msgid "Change SearXNG layout"
+#~ msgstr "SearXNG düzenini değiştir"

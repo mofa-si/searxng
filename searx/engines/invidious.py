@@ -1,17 +1,26 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 """Invidious (Videos)
+
+If you want to use invidious with SearXNG you should setup one locally.
+No public instance offer a public API now
+
+- https://github.com/searxng/searxng/issues/2722#issuecomment-2884993248
+
 """
+from __future__ import annotations
 
 import time
 import random
 from urllib.parse import quote_plus, urlparse
 from dateutil import parser
 
+from searx.utils import humanize_number
+
 # about
 about = {
     "website": 'https://api.invidious.io/',
     "wikidata_id": 'Q79343316',
-    "official_api_documentation": 'https://github.com/iv-org/documentation/blob/master/API.md',
+    "official_api_documentation": 'https://docs.invidious.io/api/',
     "use_official_api": True,
     "require_api_key": False,
     "results": 'JSON',
@@ -23,7 +32,12 @@ paging = True
 time_range_support = True
 
 # base_url can be overwritten by a list of URLs in the settings.yml
-base_url = 'https://vid.puffyan.us'
+base_url: list | str = []
+
+
+def init(_):
+    if not base_url:
+        raise ValueError("missing invidious base_url")
 
 
 def request(query, params):
@@ -91,7 +105,8 @@ def response(resp):
                     "url": url,
                     "title": result.get("title", ""),
                     "content": result.get("description", ""),
-                    'length': length,
+                    "length": length,
+                    "views": humanize_number(result['viewCount']),
                     "template": "videos.html",
                     "author": result.get("author"),
                     "publishedDate": publishedDate,

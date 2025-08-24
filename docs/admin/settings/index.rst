@@ -1,3 +1,5 @@
+.. _searxng settings.yml:
+
 ========
 Settings
 ========
@@ -11,15 +13,14 @@ Settings
    :maxdepth: 2
 
    settings
-   settings_engine
+   settings_engines
    settings_brand
    settings_general
    settings_search
    settings_server
    settings_ui
    settings_redis
+   settings_valkey
    settings_outgoing
    settings_categories_as_tabs
-
-
-
+   settings_plugins
